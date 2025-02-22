@@ -20,7 +20,7 @@ const Application = (props: ApplicationProps) => {
         max: 10,
     },
     y: {
-        value: 0,
+        value: -2,
         min: -10,
         max: 10,
     },
@@ -34,8 +34,8 @@ const Application = (props: ApplicationProps) => {
         min: 0.01,
         max: 1,
     },
-    color: "yellow",
-    hoverColor: "green",
+    color: "#15F2F0",
+    hoverColor: "#FF0081",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {

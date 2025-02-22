@@ -40,6 +40,7 @@ class Application {
       show: true,
       frame: true,
       title: "Caddy",
+      backgroundColor: "#000000",
 
       webPreferences: {
         nodeIntegration: false,
@@ -53,9 +54,9 @@ class Application {
         responseHeaders: {
           ...details.responseHeaders,
           'Content-Security-Policy': [
-            "default-src 'self' http://localhost:4000;",
+            "default-src 'self' http://localhost:4000 static:;",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval';",
-            "connect-src 'self' http://localhost:4000;",
+            "connect-src 'self' http://localhost:4000 static:;",
             "style-src 'self' 'unsafe-inline';",
             "img-src 'self' data: blob: http://localhost:4000;",
             "worker-src 'self' blob:;"
