@@ -1,15 +1,32 @@
 import React from "react";
 import { Canvas } from "@react-three/fiber";
 import { Leva, useControls } from "leva";
-import ModelScene from "./square-box";
+import ModelScene from "./ModelScene";
 
 interface ApplicationProps {}
 
 const Application = (props: ApplicationProps) => {
   const values = useControls({
-    x: 0,
-    y: 0,
-    z: 0,
+    x: {
+        value: 0,
+        min: -10,
+        max: 10,
+    },
+    y: {
+        value: 0,
+        min: -10,
+        max: 10,
+    },
+    z: {
+        value: 0,
+        min: -10,
+        max: 10,
+    },
+    scale: {
+        value: 0.1,
+        min: 0.01,
+        max: 1,
+    },
     color: "yellow",
     hoverColor: "green",
   });
@@ -19,7 +36,12 @@ const Application = (props: ApplicationProps) => {
       <Canvas>
         <ambientLight />
         <pointLight position={[10, 10, 10]} />
-        <ModelScene/>
+        <ModelScene
+          position={[values.x, values.y, values.z]}
+          color={values.color}
+          hoverColor={values.hoverColor}
+          scale={values.scale}
+        />
       </Canvas>
 
       <Leva />
