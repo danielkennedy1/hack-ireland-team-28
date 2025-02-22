@@ -31,13 +31,28 @@ app.use(bodyParser.json());
 
 function buildThreeJsSystemMessage(dimsText: string): string {
   return `
-You are a 3D modeling assistant that outputs JavaScript code for Three.js.
-1) Output ONLY JavaScript code (no comments, no code fences).
-2) The code must create a single mesh or group using vanilla Three.js geometry/material.
-3) The code must define a variable named 'mesh' or 'group' at the end. That variable is what we'll export.
-4) The bounding box should be from (0,0,0) to some appropriate size, e.g.  ${dimsText}
-5) The user might request something like a "wrench" or "cube" or "sphere." 
-   You can approximate it with boxes, cylinders, etc.
+You are an expert 3D modeling assistant that creates sophisticated Three.js models.
+
+RESPONSE FORMAT:
+- Return ONLY valid JavaScript code
+- No explanation text
+- No markdown code blocks
+- Code must define final result as 'mesh' or 'group' variable
+
+AVAILABLE COMPONENTS (no imports needed):
+- CylinderGeometry, BoxGeometry, SphereGeometry
+- Mesh, Group
+- MeshPhysicalMaterial, MeshStandardMaterial
+- Vector3
+- Math operations (Math.PI, etc)
+
+Example valid response:
+const baseGeometry = new CylinderGeometry(10, 10, 20, 32);
+const material = new MeshPhysicalMaterial({ color: 0xcccccc });
+const mesh = new Mesh(baseGeometry, material);
+
+Your response should be similar - just the code, no explanation.
+Bounding box should fit within: ${dimsText}
 `.trim();
 }
 
@@ -50,27 +65,46 @@ You are a 3D modeling assistant that outputs JavaScript code for Three.js.
  * Real production code would use Node's 'vm' module or a safer approach.
  */
 function runThreeJsCode(code: string): THREE.Object3D {
-  const sandbox = { THREE, mesh: undefined, group: undefined };
-  // Create a function that injects code. We attach to sandbox as 'this'.
+  // Include all necessary THREE components in the sandbox
+  const sandbox = { 
+    THREE,
+    mesh: undefined, 
+    group: undefined,
+    // Add commonly used THREE classes directly
+    Vector3: THREE.Vector3,
+    Box3: THREE.Box3,
+    BoxGeometry: THREE.BoxGeometry,
+    CylinderGeometry: THREE.CylinderGeometry,
+    SphereGeometry: THREE.SphereGeometry,
+    Mesh: THREE.Mesh,
+    Group: THREE.Group,
+    MeshStandardMaterial: THREE.MeshStandardMaterial,
+    MeshPhysicalMaterial: THREE.MeshPhysicalMaterial,
+    Color: THREE.Color
+  };
+
+  // Update the system message to indicate no requires/imports needed
   const wrapperFn = new Function(
     "sandbox",
     `
     with (sandbox) {
-      ${code}
-      // The code must define either mesh or group
-      return mesh || group;
+      try {
+        ${code}
+        return mesh || group;
+      } catch (error) {
+        console.error('Error in Three.js code execution:', error);
+        throw error;
+      }
     }
-  `
+    `
   );
+
   const result = wrapperFn(sandbox) as THREE.Object3D;
-  // If neither mesh nor group was set, throw an error
   if (!result) {
     throw new Error("GPT snippet did not define 'mesh' or 'group'.");
   }
   return result;
-}
-
-// ------------------- Helpers for bounding box logic -------------------
+}// ------------------- Helpers for bounding box logic -------------------
 
 /**
  * Extract numeric dims from prompt (e.g. "60mm")
@@ -86,7 +120,25 @@ function extractDimensionsMm(prompt: string): number[] {
   }
   return dims;
 }
-
+function extractCodeFromResponse(response: string): string {
+  // Look for code between JavaScript code blocks
+  const codeMatch = response.match(/```(?:javascript|js)?\s*([\s\S]*?)\s*```/);
+  if (codeMatch && codeMatch[1]) {
+    return codeMatch[1].trim();
+  }
+  
+  // If no code blocks found, try to extract just the code portion
+  // by removing natural language text
+  const lines = response.split('\n');
+  const codeLines = lines.filter(line => 
+    !line.startsWith('To ') && 
+    !line.startsWith('This ') && 
+    !line.includes('```') &&
+    line.trim().length > 0
+  );
+  
+  return codeLines.join('\n');
+}
 function buildDimsText(dims: number[]): string {
   let x = 10, y = 10, z = 10;
   if (dims.length === 1) {
@@ -136,30 +188,42 @@ app.post("/generate-model", async (req: Request, res: Response, next: NextFuncti
     const systemMessage = buildThreeJsSystemMessage(dimsText);
     const userMessage = prompt;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+   const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
       messages: [
         { role: "system", content: systemMessage },
+        { 
+          role: "assistant", 
+          content: "Here's an example of valid code:\nconst geometry = new CylinderGeometry(1, 1, 4, 32);\nconst material = new MeshPhysicalMaterial({color: 0xcccccc});\nconst mesh = new Mesh(geometry, material);" 
+        },
         { role: "user", content: userMessage },
       ],
-      max_tokens: 1500,
+      max_tokens: 2000,
       temperature: 0.7,
     });
 
-    const codeSnippet = completion.choices[0]?.message?.content?.trim() || "";
-    if (!codeSnippet) {
-      res.status(500).json({ error: "GPT returned empty snippet." });
+    const response = completion.choices[0]?.message?.content?.trim() || "";
+    if (!response) {
+      res.status(500).json({ error: "GPT returned empty response." });
       return;
     }
+
+    // Extract just the code portion
+    const codeSnippet = extractCodeFromResponse(response);
+    console.log("Executing code snippet:", codeSnippet); // Debug log
 
     let threeObject: THREE.Object3D;
     try {
       threeObject = runThreeJsCode(codeSnippet);
     } catch (err) {
       console.error("Snippet eval error:", err);
-      res.status(500).json({ error: "Failed to eval snippet: " + err });
+      res.status(500).json({ 
+        error: "Failed to eval snippet", 
+        code: codeSnippet 
+      });
       return;
     }
+
 
     const exporter = new STLExporter();
     const stlString = exporter.parse(threeObject);
