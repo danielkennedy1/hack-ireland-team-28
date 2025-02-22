@@ -41,7 +41,7 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 
-let outputDirectory = '../../../assets';
+let outputDirectory = '/Users/adambyrne/code/hack-ireland-team-28/.webpack/renderer/assets';
 
 export const setOutputDirectory = (dir: string) => {
   outputDirectory = dir;
@@ -52,6 +52,7 @@ export const setOutputDirectory = (dir: string) => {
 };
 
 export const start = () => {
+  console.log(path.join(__dirname, 'assets'));
   app.listen(CONFIG.SERVER_PORT, () => {
     console.log(`Server running on ${CONFIG.SERVER_URL}`);
   });
@@ -61,7 +62,7 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Hello from Express + Three.js + OpenAI!");
 });
 
-app.use('/assets', express.static(path.join(__dirname, '../../../assets')));
+app.use('/assets', express.static(outputDirectory));
 
 app.post("/generate-model", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
