@@ -1,0 +1,24 @@
+<html>
+    <p id="text"></p>
+    <script>
+        function appendWord(word) {
+            document.getElementById("text").innerHTML+=" "+ word;
+        }
+        function addWords(words) {
+            for (let i=0; i< words.length; i++) {
+                appendWord(words[i]);
+            };
+        };
+        
+        
+        //test code
+        var words= ["Jake", "Was", "Here", "He", "Likes", "To", "Eat", "Pizza"];
+        var time=0;
+        for (let i=0; i< words.length; i++) {
+            setTimeout(() => {
+                appendWord(words[i]);
+            }, 300*i);
+            
+        };
+    </script>
+</html>
