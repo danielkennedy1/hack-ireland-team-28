@@ -1,5 +1,13 @@
 <html>
+    <div style="text-align: center;">
+    <h1>Welcome to Caddy</h1>
+    <br>
+    <h2 id="status">Please Press Button to Begin</h2>
+    <button onclick="beginListening()">Click me</button>
+    <br> 
+    <h3>Speech input:</h3>
     <p id="text"></p>
+    </div>
     <script>
         function appendWord(word) {
             document.getElementById("text").innerHTML+=" "+ word;
@@ -9,16 +17,29 @@
                 appendWord(words[i]);
             };
         };
-        
-        
-        //test code
-        var words= ["Jake", "Was", "Here", "He", "Likes", "To", "Eat", "Pizza"];
-        var time=0;
-        for (let i=0; i< words.length; i++) {
-            setTimeout(() => {
-                appendWord(words[i]);
-            }, 300*i);
+        function beginListening(interval=300) {
+            document.getElementById("status").innerHTML="Currently Recording Input";
+            listen();
             
         };
+        function listen() {
+            var words= ["Jake", "Was", "Here", "He", "Likes", "To", "Eat", "Pizza"];
+            for (let i=0; i< words.length; i++) {
+                setTimeout(() => {
+                    appendWord(words[i]);
+                }, 300*i);
+            
+            };
+            setTimeout(() => {
+                endListening();
+                }, 300*(words.length+2));
+        };
+
+        function endListening() {
+            document.getElementById("status").innerHTML="Input Done Recording";
+        }
+        //test code
+
+        
     </script>
 </html>
