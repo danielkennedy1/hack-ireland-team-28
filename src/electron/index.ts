@@ -20,7 +20,7 @@ class Application {
           callback(filePath);
         } else {
           // Handle other static files from the assets directory
-          const filePath = path.join(__dirname, '../assets', fileUrl);
+          const filePath = path.join(__dirname, '../../assets', fileUrl);
           callback(filePath);
         }
       });

@@ -2,6 +2,7 @@ import React, { useState, Suspense } from "react";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
 import { useLoader } from "@react-three/fiber";
 import { OrbitControls, Box } from "@react-three/drei";
+import { CONFIG } from "../electron/server/config";
 
 interface ModelSceneProps {
   position: [number, number, number];
@@ -13,8 +14,10 @@ interface ModelSceneProps {
 
 const Model: React.FC<ModelSceneProps> = ({ position, color, hoverColor, scale, modelPath }) => {
   const [hovered, setHovered] = useState(false);
-  // /Users/adambyrne/code/hack-ireland-team-28/src/assets/3DBenchy.stl
-  const geometry = useLoader(STLLoader, modelPath || '../assets/3DBenchy.stl');
+  // Use the server URL to load the STL file
+  const fullModelPath = modelPath ? `${CONFIG.SERVER_URL}/assets/${modelPath}` : `${CONFIG.SERVER_URL}/assets/3DBenchy.stl`;
+  console.log("Loading model:", fullModelPath);
+  const geometry = useLoader(STLLoader, fullModelPath);
 
   return (
     <mesh
@@ -39,9 +42,6 @@ const DefaultBox: React.FC<ModelSceneProps> = ({ position, scale, color, hoverCo
       args={[1, 1, 1]}
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
-
-
-      
     >
       <meshStandardMaterial color={hovered ? hoverColor : color} />
     </Box>

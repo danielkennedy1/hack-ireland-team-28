@@ -12,13 +12,13 @@ export const plugins = [
   new CopyWebpackPlugin({
     patterns: [
       ...assets.map((asset) => ({
-        from: path.resolve(__dirname, 'src', asset),
+        from: path.resolve(__dirname, asset),
         to: path.resolve(__dirname, '.webpack/renderer', asset),
       })),
-      // {
-      //   from: path.resolve(__dirname, 'src/electron/server/examples/threejs_examples.json'),
-      //   to: path.resolve(__dirname, '.webpack/main/examples/threejs_examples.json'),
-      // },
+      {
+        from: path.resolve(__dirname, './assets/*.stl'),
+        to: path.resolve(__dirname, '.webpack/renderer/assets/[name][ext]'),
+      }
     ],
   }),
 ];
