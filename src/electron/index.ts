@@ -1,5 +1,6 @@
 import { app, BrowserWindow, session } from "electron";
 import path from "path";
+import { startServer } from "./server-service";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -13,10 +14,20 @@ class Application {
     app.on("ready", () => {
       session.defaultSession.protocol.registerFileProtocol('static', (request, callback) => {
         const fileUrl = request.url.replace('static://', '');
+        // Check if it's a model file
+        if (fileUrl.endsWith('.stl')) {
+          const filePath = path.join(app.getPath('userData'), fileUrl);
+          callback(filePath);
+          return;
+        }
+        // Handle other static files
         const filePath = path.join(app.getAppPath(), '.webpack/renderer', fileUrl);
         callback(filePath);
       });
-    this.createWindow();
+      
+      // Start the server before creating the window
+      startServer();
+      this.createWindow();
     });
     app.on("window-all-closed", Application.onWindowAllClosed);
     app.on("activate", this.onActivate);

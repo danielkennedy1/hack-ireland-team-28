@@ -1,4 +1,3 @@
-
 import express from "express";
 import { Request, Response, NextFunction } from "express";
 import bodyParser from "body-parser";
@@ -7,6 +6,7 @@ import dotenv from "dotenv";
 import OpenAI from "openai";
 import { CONFIG } from "./config";
 import cors from "cors";
+import path from "path";
 
 import { buildRetrievalContext } from "./retrieval";
 // Import geometry functions
@@ -36,6 +36,22 @@ import { STLExporter } from "three-stdlib";
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+
+let outputDirectory = ".";
+
+export const setOutputDirectory = (dir: string) => {
+  outputDirectory = dir;
+  // Create directory if it doesn't exist
+  if (!fs.existsSync(outputDirectory)) {
+    fs.mkdirSync(outputDirectory, { recursive: true });
+  }
+};
+
+export const start = () => {
+  app.listen(CONFIG.SERVER_PORT, () => {
+    console.log(`Server running on ${CONFIG.SERVER_URL}`);
+  });
+};
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello from Express + Three.js + OpenAI!");
@@ -96,22 +112,20 @@ app.post("/generate-model", async (req: Request, res: Response, next: NextFuncti
     }
 
     const exporter = new STLExporter();
-    const stlString = exporter.parse(threeObject);
+    const stlString = exporter.parse(threeObject, {});
 
-    fs.writeFileSync("model.stl", stlString, "utf8");
+    const outputPath = path.join(outputDirectory, "model.stl");
+    fs.writeFileSync(outputPath, stlString, "utf8");
 
     res.json({
       message: "Three.js code generated & STL exported!",
       gpt_snippet: codeSnippet,
-      file_saved: "model.stl",
+      file_saved: `models/model.stl`, // Return relative path instead of full path
       prompt_used: prompt,
     });
   } catch (err: any) {
     next(err);
   }
-});
-app.listen(CONFIG.SERVER_PORT, () => {
-  console.log(`Server running on ${CONFIG.SERVER_URL}`);
 });
 
 // Error-handling middleware (add at the end of server.ts)
