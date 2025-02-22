@@ -27,6 +27,7 @@
     "express": "^4.21.2",
     "openai": "^4.85.3",
     "three": "^0.173.0",
+    "three-csg-ts": "^3.2.0",
     "three-stdlib": "^2.35.14"
   },
   "devDependencies": {

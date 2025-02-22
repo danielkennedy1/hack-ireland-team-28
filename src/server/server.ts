@@ -1,3 +1,4 @@
+
 import express from "express";
 import { Request, Response, NextFunction } from "express";
 import bodyParser from "body-parser";
@@ -59,14 +60,15 @@ app.post("/generate-model", async (req: Request, res: Response, next: NextFuncti
       model: "gpt-4o",
       messages: [
         { role: "system", content: systemMessage },
-        { 
-          role: "assistant", 
-          content: "Here's an example of valid code:\nconst geometry = new CylinderGeometry(1, 1, 4, 32);\nconst material = new MeshPhysicalMaterial({color: 0xcccccc});\nconst mesh = new Mesh(geometry, material);" 
+        {
+          role: "assistant",
+          content:
+            "Here's an example of valid code:\nconst geometry = new CylinderGeometry(1, 1, 4, 32);\nconst material = new MeshPhysicalMaterial({color: 0xcccccc});\nconst mesh = new Mesh(geometry, material);",
         },
         { role: "user", content: userMessage },
       ],
-      max_tokens: 2000,
-      temperature: 0.7,
+      max_tokens:10000,
+      temperature: 0.8,
     });
 
     const response = completion.choices[0]?.message?.content?.trim() || "";
@@ -108,3 +110,8 @@ app.listen(CONFIG.SERVER_PORT, () => {
   console.log(`Server running on ${CONFIG.SERVER_URL}`);
 });
 
+// Error-handling middleware (add at the end of server.ts)
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error("Express error handler:", err);
+  res.status(500).json({ error: err.message });
+});
