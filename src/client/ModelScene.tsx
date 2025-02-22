@@ -26,7 +26,7 @@ const Model = (props: ModelProps) => {
   // Rotate the mesh each frame
   useFrame((_, delta) => {
     if (mesh.current) {
-      mesh.current.rotation.y += delta
+      mesh.current.rotation.z += delta
     }
   })
 
@@ -38,6 +38,7 @@ const Model = (props: ModelProps) => {
       onClick={() => setActive(!active)}
       onPointerOver={() => setHover(true)}
       onPointerOut={() => setHover(false)}
+      rotation={[-Math.PI / 2, 0, 0]}
       {...props}
     >
       <meshStandardMaterial color={hovered ? props.hoverColor : props.color} />
