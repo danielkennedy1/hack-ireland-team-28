@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Leva, useControls } from "leva";
 import ModelScene from "./ModelScene";
-import { CONFIG } from "../electron/server/config";
+import {CONFIG} from "../electron/server/config";
 
 interface ApplicationProps {}
 
@@ -10,6 +10,8 @@ const Application = (props: ApplicationProps) => {
   const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState("");
   const [modelPath, setModelPath] = useState<string | null>(null);
+
+  
 
   const values = useControls({
     x: {
@@ -38,9 +40,24 @@ const Application = (props: ApplicationProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("Generating...");
+    setStatus("Checking server...");
     
     try {
+      // First check if server is accessible with proper fetch options
+      const healthCheck = await fetch(CONFIG.SERVER_URL, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!healthCheck.ok) {
+        throw new Error('Server is not responding');
+      }
+      
+      setStatus("Generating...");
+      
+      // Make the POST request directly instead of using the electron bridge
       const response = await fetch(`${CONFIG.SERVER_URL}/generate-model`, {
         method: 'POST',
         headers: {
@@ -48,7 +65,12 @@ const Application = (props: ApplicationProps) => {
         },
         body: JSON.stringify({ prompt }),
       });
-      
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server error: ${errorText}`);
+      }
+  
       const data = await response.json();
       if (data.error) {
         throw new Error(data.error);
@@ -57,10 +79,10 @@ const Application = (props: ApplicationProps) => {
       setStatus("Generated successfully!");
       setModelPath(data.file_saved);
     } catch (error) {
+      console.error('Generation error:', error);
       setStatus(`Error: ${error.message}`);
     }
   };
-
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '20px' }}>

@@ -1,12 +1,35 @@
 import fs from "fs";
 import path from "path";
 import { OpenAI } from "openai";
-
+import { app } from "electron";
 import dotenv from "dotenv";
 dotenv.config();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
-const examplesPath = path.join(__dirname, "examples", "threejs_examples.json");
 
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
+
+// Store examples in a more accessible location
+function getExamplesPath(): string {
+  const devPath = "/Users/adambyrne/code/hack-ireland-team-28/embeddings/examples.json";
+  return devPath;
+}
+
+const examplesPath = getExamplesPath();
+if (!fs.existsSync(examplesPath)) {
+  // Ensure directory exists and copy from bundled location if needed.
+  const examplesDir = path.dirname(examplesPath);
+  if (!fs.existsSync(examplesDir)) {
+    fs.mkdirSync(examplesDir, { recursive: true });
+  }
+  // Try to copy from a known source location (adjust as needed)
+  const sourceExamples = path.join(__dirname, "examples", "threejs_examples.json");
+  if (fs.existsSync(sourceExamples)) {
+    fs.copyFileSync(sourceExamples, examplesPath);
+  } else {
+    console.error("Source examples file not found:", sourceExamples);
+  }
+}
+
+// Now load the examples
 interface ThreeJSExample {
   title: string;
   tags: string[];
@@ -16,8 +39,6 @@ interface ThreeJSExample {
 }
 
 let examples: ThreeJSExample[] = [];
-
-// Load examples from JSON file
 try {
   const data = fs.readFileSync(examplesPath, "utf8");
   examples = JSON.parse(data);

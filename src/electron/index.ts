@@ -42,10 +42,26 @@ class Application {
       title: "Caddy",
 
       webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false,
+        nodeIntegration: false,
+        contextIsolation: true,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       },
+    });
+
+    mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Content-Security-Policy': [
+            "default-src 'self' http://localhost:4000;",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval';",
+            "connect-src 'self' http://localhost:4000;",
+            "style-src 'self' 'unsafe-inline';",
+            "img-src 'self' data: blob: http://localhost:4000;",
+            "worker-src 'self' blob:;"
+          ].join(' ')
+        }
+      });
     });
 
     mainWindow.once("ready-to-show", () => {

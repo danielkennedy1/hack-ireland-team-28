@@ -34,7 +34,11 @@ import * as THREE from "three";
 import { STLExporter } from "three-stdlib";
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000', // Allow requests from localhost:3000
+  methods: ['GET', 'POST'],  // Explicitly allow methods
+  credentials: true,         // Allow credentials
+}));
 app.use(bodyParser.json());
 
 let outputDirectory = ".";
