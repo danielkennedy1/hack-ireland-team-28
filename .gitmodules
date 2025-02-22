@@ -1,0 +1,3 @@
+[submodule "external/dingcad"]
+	path = external/dingcad
+	url = https://github.com/yacineMTB/dingcad.git
