@@ -16,13 +16,13 @@ class Application {
         const fileUrl = request.url.replace('static://', '');
         // Check if it's a model file
         if (fileUrl.endsWith('.stl')) {
-          const filePath = path.join(app.getPath('userData'), fileUrl);
+          const filePath = path.join(app.getPath('userData'), 'models', fileUrl);
           callback(filePath);
-          return;
+        } else {
+          // Handle other static files from the assets directory
+          const filePath = path.join(__dirname, '../assets', fileUrl);
+          callback(filePath);
         }
-        // Handle other static files
-        const filePath = path.join(app.getAppPath(), '.webpack/renderer', fileUrl);
-        callback(filePath);
       });
       
       // Start the server before creating the window

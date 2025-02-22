@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
 import { useLoader } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Box } from "@react-three/drei";
 
 interface ModelSceneProps {
   position: [number, number, number];
@@ -11,43 +11,50 @@ interface ModelSceneProps {
   modelPath?: string | null;
 }
 
-const ModelScene: React.FC<ModelSceneProps> = ({ position, color, hoverColor, scale, modelPath }) => {
+const Model: React.FC<ModelSceneProps> = ({ position, color, hoverColor, scale, modelPath }) => {
   const [hovered, setHovered] = useState(false);
+  // /Users/adambyrne/code/hack-ireland-team-28/src/assets/3DBenchy.stl
+  const geometry = useLoader(STLLoader, modelPath || '../assets/3DBenchy.stl');
 
-  if (modelPath) {
-    // Convert the file path to a static:// URL
-    const staticUrl = `static://${modelPath.split('models/')[1]}`;
-    const geometry = useLoader(STLLoader, staticUrl);
+  return (
+    <mesh
+      position={position}
+      scale={scale}
+      geometry={geometry}
+      onPointerOver={() => setHovered(true)}
+      onPointerOut={() => setHovered(false)}
+    >
+      <meshStandardMaterial color={hovered ? hoverColor : color} />
+    </mesh>
+  );
+};
 
-    return (
-      <>
-        <OrbitControls />
-        <mesh
-          position={position}
-          scale={scale}
-          geometry={geometry}
-          onPointerOver={() => setHovered(true)}
-          onPointerOut={() => setHovered(false)}
-        >
-          <meshStandardMaterial color={hovered ? hoverColor : color} />
-        </mesh>
-      </>
-    );
-  }
+// Fallback component when model is loading or errored
+const DefaultBox: React.FC<ModelSceneProps> = ({ position, scale, color, hoverColor }) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <Box
+      position={position}
+      scale={scale}
+      args={[1, 1, 1]}
+      onPointerOver={() => setHovered(true)}
+      onPointerOut={() => setHovered(false)}
 
-  // Fallback cube when no model is loaded
+
+      
+    >
+      <meshStandardMaterial color={hovered ? hoverColor : color} />
+    </Box>
+  );
+};
+
+const ModelScene: React.FC<ModelSceneProps> = (props) => {
   return (
     <>
       <OrbitControls />
-      <mesh
-        position={position}
-        scale={scale}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-      >
-        <boxGeometry />
-        <meshStandardMaterial color={hovered ? hoverColor : color} />
-      </mesh>
+      <Suspense fallback={<DefaultBox {...props} />}>
+        <Model {...props} />
+      </Suspense>
     </>
   );
 };
