@@ -1,36 +1,60 @@
 {
-  "name": "caddy",
-  "version": "0.0.1",
-  "description": "Speech to 3D modelling",
-  "main": "index.js",
-"scripts": {
-  "build": "npx tsc",
-  "start": "npm run build && electron build/electron-main.js",
-  "dev": "ts-node server.ts"
-},
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/danielkennedy1/hack-ireland-team-28.git"
-  },
-  "author": "team-28",
-  "license": "UNLICENSED",
-  "bugs": {
-    "url": "https://github.com/danielkennedy1/hack-ireland-team-28/issues"
-  },
-  "homepage": "https://github.com/danielkennedy1/hack-ireland-team-28#readme",
-  "dependencies": {
-    "body-parser": "^1.20.3",
-    "dotenv": "^16.4.7",
-    "electron": "^34.2.0",
-    "express": "^4.21.2",
-    "openai": "^4.85.3"
-  },
-  "devDependencies": {
-    "@types/electron": "^1.6.12",
-    "@types/express": "^5.0.0",
-    "@types/node": "^22.13.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
-  }
+    "name": "caddy",
+    "productName": "caddy",
+    "version": "0.0.1",
+    "description": "A new way to create 3D models",
+    "main": ".webpack/main",
+    "scripts": {
+        "start": "electron-forge start",
+        "package": "electron-forge package",
+        "make": "electron-forge make",
+        "publish": "electron-forge publish",
+        "lint": "eslint --ext .ts,.tsx ."
+    },
+    "keywords": [],
+    "author": {
+        "name": "Team 28"
+    },
+    "license": "MIT",
+    "devDependencies": {
+        "@electron-forge/cli": "^6.0.5",
+        "@electron-forge/maker-deb": "^6.0.5",
+        "@electron-forge/maker-dmg": "^6.1.1",
+        "@electron-forge/maker-rpm": "^6.0.5",
+        "@electron-forge/maker-squirrel": "^6.0.5",
+        "@electron-forge/maker-zip": "^6.0.5",
+        "@electron-forge/plugin-webpack": "^6.0.5",
+        "@electron-forge/publisher-github": "^6.1.1",
+        "@types/react": "^18.0.29",
+        "@types/react-dom": "^18.0.11",
+        "@typescript-eslint/eslint-plugin": "^5.0.0",
+        "@typescript-eslint/parser": "^5.0.0",
+        "@vercel/webpack-asset-relocator-loader": "1.7.3",
+        "copy-webpack-plugin": "^12.0.2",
+        "css-loader": "^6.0.0",
+        "electron": "23.2.0",
+        "eslint": "^8.0.1",
+        "eslint-plugin-import": "^2.25.0",
+        "file-loader": "^6.2.0",
+        "fork-ts-checker-webpack-plugin": "^7.2.13",
+        "html-loader": "^4.2.0",
+        "node-loader": "^2.0.0",
+        "style-loader": "^3.0.0",
+        "ts-loader": "^9.2.2",
+        "ts-node": "^10.0.0",
+        "typescript": "~4.5.4"
+    },
+    "dependencies": {
+        "@react-three/fiber": "^8.13.0",
+        "@types/three": "^0.151.0",
+        "electron-squirrel-startup": "^1.0.0",
+        "leva": "^0.9.34",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "three": "^0.152.2",
+        "three-stdlib": "^2.35.14"
+    },
+    "engines": {
+        "node": "18.15.0"
+    }
 }
-
