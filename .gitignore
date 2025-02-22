@@ -1,2 +1,4 @@
+.env
+*.stl
 build/
 node_modules/
