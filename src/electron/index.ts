@@ -24,7 +24,7 @@ class Application {
         const filePath = path.join(app.getAppPath(), '.webpack/renderer', fileUrl);
         callback(filePath);
       });
-      
+
       // Start the server before creating the window
       startServer();
       this.createWindow();
@@ -53,9 +53,9 @@ class Application {
         responseHeaders: {
           ...details.responseHeaders,
           'Content-Security-Policy': [
-            "default-src 'self' http://localhost:4000;",
+            "default-src 'self' http://localhost:4000 blob:;",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval';",
-            "connect-src 'self' http://localhost:4000;",
+            "connect-src 'self' http://localhost:4000 blob:;",
             "style-src 'self' 'unsafe-inline';",
             "img-src 'self' data: blob: http://localhost:4000;",
             "worker-src 'self' blob:;"
