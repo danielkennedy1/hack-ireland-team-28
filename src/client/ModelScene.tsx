@@ -3,6 +3,11 @@ import { MeshProps, useFrame, useLoader } from '@react-three/fiber'
 import { STLLoader } from 'three-stdlib'
 
 interface ModelProps extends MeshProps {
+  x?: number
+  y?: number
+  z?: number
+  scale?: number
+
   color: string
   hoverColor: string
 }
@@ -29,7 +34,7 @@ const Model = (props: ModelProps) => {
     <mesh
       ref={mesh}
       geometry={geometry}
-      scale={0.1}
+      scale={1 ** props.scale}
       onClick={() => setActive(!active)}
       onPointerOver={() => setHover(true)}
       onPointerOut={() => setHover(false)}
@@ -40,11 +45,13 @@ const Model = (props: ModelProps) => {
   )
 }
 
+interface ModelSceneProps extends ModelProps {}
+
 // Wrap your Model in Suspense to handle async loading
-const ModelScene = () => {
+const ModelScene = (props: ModelSceneProps) => {
   return (
     <Suspense fallback={null}>
-      <Model color="#888" hoverColor="#ff1050" />
+      <Model {...props}/>
     </Suspense>
   )
 }
