@@ -1,7 +1,7 @@
 import React from "react";
 import { Canvas } from "@react-three/fiber";
 import { Leva, useControls } from "leva";
-import Model from "./square-box";
+import ModelScene from "./square-box";
 
 interface ApplicationProps {}
 
@@ -19,11 +19,7 @@ const Application = (props: ApplicationProps) => {
       <Canvas>
         <ambientLight />
         <pointLight position={[10, 10, 10]} />
-        <Model
-          position={[values.x, values.y, values.z]}
-          color={values.color}
-          hoverColor={values.hoverColor}
-        />
+        <ModelScene/>
       </Canvas>
 
       <Leva />

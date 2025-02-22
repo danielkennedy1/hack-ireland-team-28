@@ -1,39 +1,52 @@
-import { MeshProps, useFrame } from "@react-three/fiber";
-import React, { useState } from "react";
+import React, { useRef, useState, Suspense } from 'react'
+import { MeshProps, useFrame, useLoader } from '@react-three/fiber'
+import { STLLoader } from 'three-stdlib'
 
-interface SquareBoxProps extends MeshProps {
-  color: string;
-  hoverColor: string;
+interface ModelProps extends MeshProps {
+  color: string
+  hoverColor: string
 }
 
-const Model = (props: SquareBoxProps) => {
-  const mesh = React.useRef();
+const Model = (props: ModelProps) => {
+  const mesh = useRef<THREE.Mesh>(null)
+  const [hovered, setHover] = useState(false)
+  const [active, setActive] = useState(false)
 
-  const [hovered, setHover] = useState(false);
-  const [active, setActive] = useState(false);
+  // Load the STL geometry
+  const geometry = useLoader(
+    STLLoader,
+    'assets/3DBenchy.stl'
+  )
 
-  useFrame((state, delta) => {
-    mesh.current.rotation.x += delta;
-    mesh.current.rotation.y += delta;
-  });
+  // Rotate the mesh each frame
+  useFrame((_, delta) => {
+    if (mesh.current) {
+      mesh.current.rotation.y += delta
+    }
+  })
 
   return (
-    <>
-      <mesh
-        {...props}
-        ref={mesh}
-        scale={active ? 2 : 1}
-        onClick={() => setActive(!active)}
-        onPointerOver={() => setHover(true)}
-        onPointerOut={() => setHover(false)}
-      >
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial
-          color={hovered ? props.hoverColor : props.color}
-        />
-      </mesh>
-    </>
-  );
-};
+    <mesh
+      ref={mesh}
+      geometry={geometry}
+      scale={0.1}
+      onClick={() => setActive(!active)}
+      onPointerOver={() => setHover(true)}
+      onPointerOut={() => setHover(false)}
+      {...props}
+    >
+      <meshStandardMaterial color={hovered ? props.hoverColor : props.color} />
+    </mesh>
+  )
+}
 
-export default Model;
+// Wrap your Model in Suspense to handle async loading
+const ModelScene = () => {
+  return (
+    <Suspense fallback={null}>
+      <Model color="#888" hoverColor="#ff1050" />
+    </Suspense>
+  )
+}
+
+export default ModelScene

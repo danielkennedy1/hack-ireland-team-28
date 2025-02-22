@@ -1,20 +1,8 @@
-import { app, BrowserWindow } from "electron";
-import express from "express";
+import { app, BrowserWindow, session } from "electron";
+import path from "path";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
-
-const expressApp = express();
-
-expressApp.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-expressApp.use(express.static("public"));
-
-expressApp.listen(4000, () => {
-  console.log("Server started on http://localhost:4000");
-});
 
 if (require("electron-squirrel-startup")) {
   app.quit();
@@ -22,7 +10,14 @@ if (require("electron-squirrel-startup")) {
 
 class Application {
   public init(): void {
-    app.on("ready", this.createWindow);
+    app.on("ready", () => {
+      session.defaultSession.protocol.registerFileProtocol('static', (request, callback) => {
+        const fileUrl = request.url.replace('static://', '');
+        const filePath = path.join(app.getAppPath(), '.webpack/renderer', fileUrl);
+        callback(filePath);
+      });
+    this.createWindow();
+    });
     app.on("window-all-closed", Application.onWindowAllClosed);
     app.on("activate", this.onActivate);
   }
