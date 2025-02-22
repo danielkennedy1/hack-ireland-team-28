@@ -41,7 +41,7 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 
-let outputDirectory = ".";
+let outputDirectory = '/Users/adambyrne/code/hack-ireland-team-28/.webpack/renderer/assets';
 
 export const setOutputDirectory = (dir: string) => {
   outputDirectory = dir;
@@ -52,6 +52,7 @@ export const setOutputDirectory = (dir: string) => {
 };
 
 export const start = () => {
+  console.log(path.join(__dirname, 'assets'));
   app.listen(CONFIG.SERVER_PORT, () => {
     console.log(`Server running on ${CONFIG.SERVER_URL}`);
   });
@@ -60,6 +61,8 @@ export const start = () => {
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello from Express + Three.js + OpenAI!");
 });
+
+app.use('/assets', express.static(outputDirectory));
 
 app.post("/generate-model", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -118,13 +121,15 @@ app.post("/generate-model", async (req: Request, res: Response, next: NextFuncti
     const exporter = new STLExporter();
     const stlString = exporter.parse(threeObject, {});
 
-    const outputPath = path.join(outputDirectory, "model.stl");
+    const timestamp = Date.now();
+    const filename = `model-${timestamp}.stl`;
+    const outputPath = path.join(outputDirectory, filename);
     fs.writeFileSync(outputPath, stlString, "utf8");
 
     res.json({
       message: "Three.js code generated & STL exported!",
       gpt_snippet: codeSnippet,
-      file_saved: `models/model.stl`, // Return relative path instead of full path
+      file_saved: filename, // Return just the filename
       prompt_used: prompt,
     });
   } catch (err: any) {

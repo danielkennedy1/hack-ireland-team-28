@@ -4,8 +4,7 @@ import * as server from './server/server';
 
 export const startServer = () => {
   // Set output directory for STL files
-  const outputDir = path.join(app.getPath('userData'), 'models');
-  server.setOutputDirectory(outputDir);
+  server.setOutputDirectory("assets");
   
   // Start the server
   server.start();
