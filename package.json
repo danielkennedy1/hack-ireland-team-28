@@ -3,11 +3,12 @@
   "version": "0.0.1",
   "description": "Speech to 3D modelling",
   "main": "index.js",
-"scripts": {
-  "build": "npx tsc",
-  "start": "npm run build && electron build/electron-main.js",
-  "dev": "ts-node server.ts"
-},
+  "scripts": {
+    "build": "npx tsc",
+    "start-server": "ts-node server.ts",
+    "start-electron": "npm run build && electron build/electron-main.js",
+    "dev": "concurrently \"npm run start-server\" \"npm run start-electron\""
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/danielkennedy1/hack-ireland-team-28.git"
@@ -29,8 +30,8 @@
     "@types/electron": "^1.6.12",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.5",
+    "concurrently": "^9.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   }
 }
-
