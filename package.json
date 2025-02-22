@@ -1,0 +1,37 @@
+{
+  "name": "caddy",
+  "version": "0.0.1",
+  "description": "Speech to 3D modelling",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && electron build/electron-main.js",
+    "dev": "ts-node server.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danielkennedy1/hack-ireland-team-28.git"
+  },
+  "author": "team-28",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/danielkennedy1/hack-ireland-team-28/issues"
+  },
+  "homepage": "https://github.com/danielkennedy1/hack-ireland-team-28#readme",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "dotenv": "^16.4.7",
+    "electron": "^34.2.0",
+    "express": "^4.21.2",
+    "openai": "^4.85.3",
+    "tsc": "^2.0.4"
+  },
+  "devDependencies": {
+    "@types/electron": "^1.6.12",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}
+
