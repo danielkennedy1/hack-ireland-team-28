@@ -2,8 +2,12 @@ import os
 import re
 import openai
 from fastapi import FastAPI, Body
+from dotenv import load_dotenv
 
-# Set your OpenAI API key via environment variable
+# 1) Load environment variables from .env (if not already set)
+load_dotenv()
+
+# 2) Set OpenAI API key from environment
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
@@ -41,7 +45,7 @@ def build_bounding_box_instructions(dims):
     else:
         x, y, z = dims[0], dims[1], dims[2]
 
-    # Ensure none are zero
+    # Ensure none are zero or negative
     x = max(x, 1)
     y = max(y, 1)
     z = max(z, 1)
@@ -62,13 +66,20 @@ def generate_model(prompt: str = Body(..., embed=True)):
            http://127.0.0.1:8000/generate-model
     """
 
-    # 1) Parse numeric dimensions from the prompt.
+    # Check if the key is loaded
+    if not openai.api_key:
+        return {
+            "error": "OpenAI API key not found. Please set OPENAI_API_KEY "
+            "in your environment or .env file."
+        }
+
+    # 1) Parse numeric dimensions from the prompt
     dims = extract_dimensions_mm(prompt)
 
-    # 2) Construct bounding box instructions based on dims.
+    # 2) Construct bounding box instructions based on dims
     bounding_box_text = build_bounding_box_instructions(dims)
 
-    # 3) Build the system message with extra instructions to ensure non-zero geometry.
+    # 3) Build the system message with extra instructions
     system_message = f"""\
 You are a 3D modeling assistant that outputs valid ASCII STL for the user's request.
 1) Always produce valid ASCII STL with at least 2 triangles (non-zero volume).
@@ -85,9 +96,9 @@ You are a 3D modeling assistant that outputs valid ASCII STL for the user's requ
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=messages,
-            max_tokens=1500,
+            max_tokens=5000,
             temperature=0.7,
         )
         stl_text = response.choices[0].message.content.strip()
