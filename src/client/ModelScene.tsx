@@ -1,60 +1,59 @@
-import React, { useRef, useState, Suspense } from 'react'
-import { MeshProps, useFrame, useLoader } from '@react-three/fiber'
+import React, { useRef, useState, Suspense, useEffect } from 'react'
+import { MeshProps, useLoader, useThree } from '@react-three/fiber'
 import { STLLoader } from 'three-stdlib'
 
 interface ModelProps extends MeshProps {
-  x?: number
-  y?: number
-  z?: number
-  scale?: number
+    x?: number
+    y?: number
+    z?: number
+    scale?: number
+    rotation?: [number, number, number]
 
-  color: string
-  hoverColor: string
+    color: string
+    hoverColor: string
 }
 
 const Model = (props: ModelProps) => {
-  const mesh = useRef<THREE.Mesh>(null)
-  const [hovered, setHover] = useState(false)
-  const [active, setActive] = useState(false)
+    const mesh = useRef<THREE.Mesh>(null)
+    const [hovered, setHover] = useState(false)
+    const { gl, scene, camera } = useThree();
 
-  // Load the STL geometry
-  const geometry = useLoader(
-    STLLoader,
-    'assets/3DBenchy.stl'
-  )
+    // Load the STL geometry
+    const geometry = useLoader(
+        STLLoader,
+        'assets/3DBenchy.stl'
+    )
 
-  // Rotate the mesh each frame
-  useFrame((_, delta) => {
-    if (mesh.current) {
-      mesh.current.rotation.z += delta
-    }
-  })
+    useEffect(() => {
+        gl.render(scene, camera);
+        const dataUrl = gl.domElement.toDataURL('image/png');
+        console.log(dataUrl); // or send this to a server
+    }, [])
 
-  return (
-    <mesh
-      ref={mesh}
-      geometry={geometry}
-      scale={1 ** props.scale}
-      onClick={() => setActive(!active)}
-      onPointerOver={() => setHover(true)}
-      onPointerOut={() => setHover(false)}
-      rotation={[-Math.PI / 2, 0, 0]}
-      {...props}
-    >
-      <meshStandardMaterial color={hovered ? props.hoverColor : props.color} />
-    </mesh>
-  )
+    return (
+        <mesh
+            ref={mesh}
+            geometry={geometry}
+            scale={1 ** props.scale}
+            onPointerOver={() => setHover(true)}
+            onPointerOut={() => setHover(false)}
+            rotation={props.rotation}
+            {...props}
+        >
+            <meshStandardMaterial color={hovered ? props.hoverColor : props.color} />
+        </mesh>
+    )
 }
 
-interface ModelSceneProps extends ModelProps {}
+interface ModelSceneProps extends ModelProps { }
 
 // Wrap your Model in Suspense to handle async loading
 const ModelScene = (props: ModelSceneProps) => {
-  return (
-    <Suspense fallback={null}>
-      <Model {...props}/>
-    </Suspense>
-  )
+    return (
+        <Suspense fallback={null}>
+            <Model {...props} />
+        </Suspense>
+    )
 }
 
 export default ModelScene

@@ -1,7 +1,6 @@
 import React from "react";
-import { Canvas } from "@react-three/fiber";
 import { Leva, useControls } from "leva";
-import ModelScene from "./ModelScene";
+import ScrollDragCanvas from "./ScrollDragCanvas";
 
 interface ApplicationProps {}
 
@@ -13,7 +12,7 @@ const Application = (props: ApplicationProps) => {
         max: 10,
     },
     y: {
-        value: 0,
+        value: -2,
         min: -10,
         max: 10,
     },
@@ -27,24 +26,15 @@ const Application = (props: ApplicationProps) => {
         min: 0.01,
         max: 1,
     },
-    color: "yellow",
-    hoverColor: "green",
+    color: "#15F2F0",
+    hoverColor: "#FF0081",
   });
 
+ 
   return (
     <>
-      <Canvas>
-        <ambientLight />
-        <pointLight position={[10, 10, 10]} />
-        <ModelScene
-          position={[values.x, values.y, values.z]}
-          color={values.color}
-          hoverColor={values.hoverColor}
-          scale={values.scale}
-        />
-      </Canvas>
-
       <Leva />
+    <ScrollDragCanvas {...values}/>
     </>
   );
 };

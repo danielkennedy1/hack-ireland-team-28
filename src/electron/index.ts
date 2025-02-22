@@ -29,6 +29,7 @@ class Application {
       show: true,
       frame: true,
       title: "Caddy",
+      backgroundColor: "#000000",
 
       webPreferences: {
         nodeIntegration: true,
