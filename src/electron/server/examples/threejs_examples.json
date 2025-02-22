@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Extrude a Star Shape",
+    "tags": ["extrude", "star", "shape"],
+    "description": "Extrudes a star-shaped profile to create a gear-like 3D object.",
+    "code": "const starShape = new Shape();\nstarShape.moveTo(0, 5);\nstarShape.lineTo(1, 1);\nstarShape.lineTo(5, 1);\nstarShape.lineTo(2, -1);\nstarShape.lineTo(3, -5);\nstarShape.lineTo(0, -3);\nstarShape.lineTo(-3, -5);\nstarShape.lineTo(-2, -1);\nstarShape.lineTo(-5, 1);\nstarShape.lineTo(-1, 1);\nstarShape.lineTo(0, 5);\nconst extrudeSettings = { depth: 2, bevelEnabled: true, bevelThickness: 0.5, bevelSize: 0.5, bevelSegments: 2 };\nconst geometry = new ExtrudeGeometry(starShape, extrudeSettings);\nconst material = new MeshPhysicalMaterial({ color: 0xffcc00 });\nconst mesh = new Mesh(geometry, material);"
+  },
+  {
+    "title": "Lathe Geometry Vase",
+    "tags": ["lathe", "vase", "revolve"],
+    "description": "Uses LatheGeometry to create a vase-like object by revolving a set of profile points.",
+    "code": "const points = [];\nfor (let i = 0; i < 10; i++) {\n  points.push(new Vector2(5 + i * 0.5, i));\n}\nconst geometry = new LatheGeometry(points, 32);\nconst material = new MeshStandardMaterial({ color: 0x00ff00 });\nconst mesh = new Mesh(geometry, material);"
+  }
+]
