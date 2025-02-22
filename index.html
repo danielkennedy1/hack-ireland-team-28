@@ -1,13 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Electron Barebones</title>
-  </head>
-  <body>
-    <h1>Hello from Electron!</h1>
-    <p>
-      This page is loaded by Electron, from a local index.html.
-    </p>
-  </body>
+<html>
+<head>
+    <title>Model Generator</title>
+    <style>
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #promptInput {
+            flex-grow: 1;
+            padding: 8px;
+        }
+        #result {
+            white-space: pre-wrap;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>3D Model Generator</h1>
+        <div class="input-group">
+            <input type="text" id="promptInput" placeholder="Enter your prompt...">
+            <button onclick="submitPrompt()">Generate</button>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function submitPrompt() {
+            const promptInput = document.getElementById('promptInput');
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                resultDiv.textContent = 'Generating...';
+                const result = await window.api.generateModel(promptInput.value);
+                resultDiv.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
 </html>

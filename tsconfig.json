@@ -7,5 +7,5 @@
     "esModuleInterop": true,
     "outDir": "build"
   },
-  "include": ["electron-main.ts", "server.ts"]
+  "include": ["**/*.ts"],
 }

@@ -1,17 +1,34 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import * as path from "path";
 
-// Create a new BrowserWindow and load our index.html
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js') // Add preload script
+    }
   });
 
-  // IMPORTANT: We're loading index.html from the parent folder (not in build/)
-  // so we use "../index.html" relative to compiled "build/electron-main.js"
   mainWindow.loadFile(path.join(__dirname, "../index.html"));
 }
+
+// IPC handler for API requests
+ipcMain.handle('submit-generation', async (_event, prompt: string) => {
+  try {
+    const response = await fetch('http://localhost:4000/generate-model', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('API request failed:', error);
+    throw error;
+  }
+});
 
 // Called when Electron finishes initialization
 app.whenReady().then(() => {
