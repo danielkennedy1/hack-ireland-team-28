@@ -1,12 +1,14 @@
 import express from "express";
 import { Request, Response, NextFunction } from "express";
 import bodyParser from "body-parser";
+import multer from "multer";
 import fs from "fs";
 import dotenv from "dotenv";
 import OpenAI from "openai";
 import { CONFIG } from "./config";
 import cors from "cors";
 import path from "path";
+import { Readable } from "stream";
 
 import { buildRetrievalContext } from "./retrieval";
 // Import geometry functions
@@ -33,9 +35,12 @@ const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 // Import THREE.js components on server side
 import * as THREE from "three";
 // If you installed three-stdlib:
+import { transcriptionFromBlob } from "./transcribe";
+import { isUploadable, Uploadable } from "openai/uploads";
 import { STLExporter } from "three/addons/exporters/STLExporter";
 
 const app = express();
+const upload = multer();
 app.use(cors({
   origin: 'http://localhost:3000', // Allow requests from localhost:3000
   methods: ['GET', 'POST'],  // Explicitly allow methods
@@ -135,6 +140,30 @@ app.post("/generate-model", async (req: Request, res: Response, next: NextFuncti
       file_saved: filename, // Return just the filename
       prompt_used: prompt,
     });
+  } catch (err: any) {
+    next(err);
+  }
+});
+
+app.post("/transcribe", upload.single("audio"), async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const audioFile = req.file;
+
+    if (!audioFile) {
+      res.status(400).json({ error: "Missing request body." });
+      return;
+    }
+
+    console.debug("Received audio file:", audioFile);
+
+    // Convert to uploadable FsReadStream
+    fs.writeFileSync(path.join(outputDirectory, "/speech.wav"), audioFile.buffer);
+    const audio = fs.createReadStream(path.join(outputDirectory, "/speech.wav"));
+
+    // Call API to get transcript
+    const transcript = await transcriptionFromBlob(audio as Uploadable, "en");
+    res.json({ message: "Success", transcript: transcript });
+
   } catch (err: any) {
     next(err);
   }

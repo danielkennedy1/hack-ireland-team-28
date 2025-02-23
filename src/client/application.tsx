@@ -3,6 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { Leva, useControls } from "leva";
 import ModelScene from "./ModelScene";
 import { CONFIG } from "../electron/server/config";
+import Whisper from "./whisper";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
 import { BufferGeometry } from "three";
 
@@ -12,13 +13,8 @@ const Application = () => {
   const [modelPath, setModelPath] = useState<string | null>(null);
   const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
 
-  // Create a ref to track mount status
-  const isMountedRef = useRef(true);
-
   useEffect(() => {
     // Whenever modelPath changes, ensure the ref is true for this effect instance
-    isMountedRef.current = true;
-
     console.log("in useEffect: Model path:", modelPath);
     const fullModelPath = modelPath
       ? `${CONFIG.SERVER_URL}/assets/${modelPath}`
@@ -30,7 +26,6 @@ const Application = () => {
       new STLLoader().load(fullModelPath, (geometry) => {
         console.log("Loaded geometry:", geometry);
         // Only update state if still mounted
-        if (!isMountedRef.current) return;
         setGeometry(geometry);
       });
       console.log("oops");
@@ -46,28 +41,27 @@ const Application = () => {
     // Cleanup: clear the timer and mark as unmounted for this effect instance
     return () => {
       clearTimeout(timer);
-      isMountedRef.current = false;
     };
   }, [modelPath]);const values = useControls({
     x: {
-        value: 0,
-        min: -10,
-        max: 10,
+      value: 0,
+      min: -10,
+      max: 10,
     },
     y: {
-        value: 0,
-        min: -10,
-        max: 10,
+      value: 0,
+      min: -10,
+      max: 10,
     },
     z: {
-        value: 0,
-        min: -10,
-        max: 10,
+      value: 0,
+      min: -10,
+      max: 10,
     },
     scale: {
-        value: 0.1,
-        min: 0.01,
-        max: 1,
+      value: 0.1,
+      min: 0.01,
+      max: 1,
     },
     color: "#ffff00",
     hoverColor: "#9090ff",
@@ -75,7 +69,7 @@ const Application = () => {
 
   const handleSubmit = async () => {
     setStatus("Checking server...");
-    
+
     try {
       // First check if server is accessible with proper fetch options
       const healthCheck = await fetch(CONFIG.SERVER_URL, {
@@ -84,13 +78,13 @@ const Application = () => {
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (!healthCheck.ok) {
         throw new Error('Server is not responding');
       }
-      
+
       setStatus("Generating...");
-      
+
       // Make the POST request directly instead of using the electron bridge
       const response = await fetch(`${CONFIG.SERVER_URL}/generate-model`, {
         method: 'POST',
@@ -99,17 +93,17 @@ const Application = () => {
         },
         body: JSON.stringify({ prompt }),
       });
-  
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Server error: ${errorText}`);
       }
-  
+
       const data = await response.json();
       if (data.error) {
         throw new Error(data.error);
       }
-      
+
       setStatus("Generated successfully!");
       setModelPath(data.file_saved); // Set the filename directly
     } catch (error) {
@@ -119,6 +113,8 @@ const Application = () => {
   };
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Whisper></Whisper>
+
       <div style={{ padding: '20px' }}>
           <input
             type="text"
