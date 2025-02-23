@@ -37,7 +37,14 @@ import { transcriptionFromBlob } from './transcribe';
 import { isUploadable, Uploadable } from 'openai/uploads';
 import { STLExporter } from 'three/addons/exporters/STLExporter';
 import { ChatCompletionCreateParams } from 'openai/resources';
-import { buildCorrectionSystemPrompt } from './correction';
+import { buildErrorCorrectionSystemPrompt, buildPromptCorrectionSystemPrompt } from './correction';
+
+import session from "express-session";
+declare module 'express-session' {
+  export interface SessionData {
+    previousCodeSnippet?: string;
+  }
+}
 
 const app = express();
 const upload = multer();
@@ -50,6 +57,9 @@ app.use(
 );
 
 app.use(bodyParser.json());
+
+// Hardcoded as session not intended to be secure
+app.use(session({ secret: "4b85a753-f50b-4165-9963-0ed2ba11fcfa" }));
 
 let outputDirectory = path.join(electron_app.getAppPath(), '/assets');
 
@@ -77,11 +87,14 @@ app.post(
   '/generate-model',
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const prompt = req.body?.prompt;
-      if (!prompt) {
+      const body = req.body?.prompt;
+      if (!body.prompt) {
         res.status(400).json({ error: "Missing 'prompt' in request body." });
         return;
       }
+
+      const isCorrection = body.isCorrection;
+      const prompt = body.prompt;
 
       // Extract dimensions and build bounding box text
       const dims = extractDimensionsMm(prompt);
@@ -94,7 +107,15 @@ app.post(
       const systemMessage = `${buildThreeJsSystemMessage(dimsText)}\n\n${retrievalContext}`;
 
       // Use the user prompt as input
-      const userMessage = prompt + " Make it consistent and include details.";
+      let userMessage = "";
+      if (req.session?.previousCodeSnippet !== undefined) {
+
+      }
+      if (isCorrection === true && req.session.previousCodeSnippet !== undefined) {
+        userMessage = buildPromptCorrectionSystemPrompt(prompt, req.session.previousCodeSnippet);
+      } else {
+        userMessage = prompt + " Make it consistent and include details.";
+      }
 
       let completionParams: ChatCompletionCreateParams = {
         model: 'gpt-4o-mini',
@@ -111,6 +132,8 @@ app.post(
       }
 
       const codeSnippet = extractCodeFromResponse(response);
+      req.session.previousCodeSnippet = codeSnippet;
+
       console.log('Executing code snippet:', codeSnippet);
 
       let threeObject: THREE.Object3D;
@@ -120,7 +143,7 @@ app.post(
         console.warn('Snippet eval error:', err);
 
         // Attempt to recover once from error
-        const systemMessage = buildCorrectionSystemPrompt(codeSnippet, err);
+        const systemMessage = buildErrorCorrectionSystemPrompt(codeSnippet, err);
         completionParams.model = "gpt-4o-mini";
         completionParams.messages = [{ role: 'user', content: systemMessage }];
         completionParams.max_completion_tokens = 16000;
@@ -128,6 +151,7 @@ app.post(
 
         const response = correction.choices[0]?.message?.content?.trim() || '';
         const newCodeSnippet = extractCodeFromResponse(response);
+        req.session.previousCodeSnippet = newCodeSnippet;
         console.log("Correction:", newCodeSnippet);
 
         try {
