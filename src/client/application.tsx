@@ -1,20 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Leva, useControls } from "leva";
 import ModelScene from "./ModelScene";
 import { CONFIG } from "../electron/server/config";
 import Whisper from "./whisper";
+import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
+import { BufferGeometry } from "three";
 
-interface ApplicationProps { }
-
-const Application = (props: ApplicationProps) => {
+const Application = () => {
   const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState("");
   const [modelPath, setModelPath] = useState<string | null>(null);
+  const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
 
+  useEffect(() => {
+    // Whenever modelPath changes, ensure the ref is true for this effect instance
+    console.log("in useEffect: Model path:", modelPath);
+    const fullModelPath = modelPath
+      ? `${CONFIG.SERVER_URL}/assets/${modelPath}`
+      : `${CONFIG.SERVER_URL}/assets/3DBenchy.stl`;
+    console.log("in useEffect: Full model path:", fullModelPath);
 
+    function loadModel() {
+      console.log("Loading model:", fullModelPath);
+      new STLLoader().load(fullModelPath, (geometry) => {
+        console.log("Loaded geometry:", geometry);
+        // Only update state if still mounted
+        setGeometry(geometry);
+      });
+      console.log("oops");
+    }
 
-  const values = useControls({
+    console.log("oops 99");
+    const timer = setTimeout(() => {
+      console.log("Timer triggered: Loading model:", fullModelPath);
+      loadModel();
+    }, 500);
+    console.log("Timer:", timer);
+
+    // Cleanup: clear the timer and mark as unmounted for this effect instance
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [modelPath]);const values = useControls({
     x: {
       value: 0,
       min: -10,
@@ -35,12 +63,11 @@ const Application = (props: ApplicationProps) => {
       min: 0.01,
       max: 1,
     },
-    color: "yellow",
-    hoverColor: "green",
+    color: "#ffff00",
+    hoverColor: "#9090ff",
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setStatus("Checking server...");
 
     try {
@@ -89,7 +116,6 @@ const Application = (props: ApplicationProps) => {
       <Whisper></Whisper>
 
       <div style={{ padding: '20px' }}>
-        <form onSubmit={handleSubmit}>
           <input
             type="text"
             value={prompt}
@@ -97,22 +123,21 @@ const Application = (props: ApplicationProps) => {
             placeholder="Enter your model description..."
             style={{ width: '300px', marginRight: '10px' }}
           />
-          <button type="submit">Generate Model</button>
-        </form>
-        <p>{status}</p>
+          <button style={{"backgroundColor": "white", "color": "black"}} type="button" onClick={handleSubmit}>Generate Model</button>
+        <p style={{"color": "white"}}>{status}</p>
         {modelPath && <p>Model saved to: {modelPath}</p>}
       </div>
 
       <div style={{ flex: 1 }}>
         <Canvas>
-          <ambientLight />
-          <pointLight position={[10, 10, 10]} />
+          <ambientLight intensity={0.1}/>
+          <pointLight position={[10, 10, 10]} intensity={0.3} />
           <ModelScene
             position={[values.x, values.y, values.z]}
             color={values.color}
             hoverColor={values.hoverColor}
             scale={values.scale}
-            modelPath={modelPath}
+            geometry={geometry}
           />
         </Canvas>
       </div>
