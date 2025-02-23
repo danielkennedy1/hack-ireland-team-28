@@ -1,0 +1,7 @@
+.webpack
+node_modules
+dist
+out
+package-lock.json
+assets
+embeddings

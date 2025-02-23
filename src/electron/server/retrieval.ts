@@ -1,11 +1,11 @@
-import fs from "fs";
-import path from "path";
-import { OpenAI } from "openai";
-import { app } from "electron";
-import dotenv from "dotenv";
+import fs from 'fs';
+import path from 'path';
+import { OpenAI } from 'openai';
+import { app } from 'electron';
+import dotenv from 'dotenv';
 dotenv.config();
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || '' });
 
 // Store examples in a more accessible location
 function getExamplesPath(): string {
@@ -21,11 +21,11 @@ if (!fs.existsSync(examplesPath)) {
     fs.mkdirSync(examplesDir, { recursive: true });
   }
   // Try to copy from a known source location (adjust as needed)
-  const sourceExamples = path.join(__dirname, "examples", "threejs_examples.json");
+  const sourceExamples = path.join(__dirname, 'examples', 'threejs_examples.json');
   if (fs.existsSync(sourceExamples)) {
     fs.copyFileSync(sourceExamples, examplesPath);
   } else {
-    console.error("Source examples file not found:", sourceExamples);
+    console.error('Source examples file not found:', sourceExamples);
   }
 }
 
@@ -40,10 +40,10 @@ interface ThreeJSExample {
 
 let examples: ThreeJSExample[] = [];
 try {
-  const data = fs.readFileSync(examplesPath, "utf8");
+  const data = fs.readFileSync(examplesPath, 'utf8');
   examples = JSON.parse(data);
 } catch (err) {
-  console.error("Failed to load examples:", err);
+  console.error('Failed to load examples:', err);
 }
 
 // Compute cosine similarity between two vectors
@@ -62,7 +62,7 @@ function cosineSimilarity(a: number[], b: number[]): number {
 // Compute an embedding for a given text using OpenAI's embeddings
 async function computeEmbedding(text: string): Promise<number[]> {
   const response = await openai.embeddings.create({
-    model: "text-embedding-ada-002",
+    model: 'text-embedding-ada-002',
     input: text,
   });
   // Assumes response.data[0].embedding exists
@@ -75,10 +75,10 @@ async function precomputeExampleEmbeddings(): Promise<void> {
     if (!example.embedding) {
       try {
         // Combine description and code for the embedding
-        const embedding = await computeEmbedding(example.description + " " + example.code);
+        const embedding = await computeEmbedding(example.description + ' ' + example.code);
         example.embedding = embedding;
       } catch (err) {
-        console.error("Error computing embedding for example:", example.title, err);
+        console.error('Error computing embedding for example:', example.title, err);
       }
     }
   }
@@ -99,7 +99,7 @@ export async function getRelevantExamples(prompt: string, topN = 2): Promise<Thr
 // Build a context string for GPT from the retrieved examples
 export async function buildRetrievalContext(prompt: string): Promise<string> {
   const relevant = await getRelevantExamples(prompt);
-  let context = "Relevant Three.js Examples:\n";
+  let context = 'Relevant Three.js Examples:\n';
   relevant.forEach((ex, idx) => {
     context += `Example ${idx + 1} - ${ex.title}:\n${ex.code}\n\n`;
   });

@@ -1,26 +1,26 @@
-import { app, BrowserWindow, session } from "electron";
-import path from "path";
-import { startServer } from "./server-service";
+import { app, BrowserWindow, session } from 'electron';
+import path from 'path';
+import { startServer } from './server-service';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
-if (require("electron-squirrel-startup")) {
+if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
 class Application {
   public init(): void {
-    app.on("ready", () => {
+    app.on('ready', () => {
       session.defaultSession.protocol.registerFileProtocol('static', (request, callback) => {
         const fileUrl = request.url.replace('static://', '');
         // Check if it's a model file
         if (fileUrl.endsWith('.stl')) {
-          const filePath = path.join('C:/Users/danie/Development/hack-ireland-team-28/.webpack/renderer/assets', fileUrl);
+          const filePath = path.join(app.getAppPath(), 'assets', fileUrl);
           callback(filePath);
         } else {
           // Handle other static files from the assets directory
-          const filePath = path.join('C:/Users/danie/Development/hack-ireland-team-28/.webpack/renderer/assets', fileUrl);
+          const filePath = path.join(app.getAppPath(), 'assets', fileUrl);
           callback(filePath);
         }
       });
@@ -29,8 +29,8 @@ class Application {
       startServer();
       this.createWindow();
     });
-    app.on("window-all-closed", Application.onWindowAllClosed);
-    app.on("activate", this.onActivate);
+    app.on('window-all-closed', Application.onWindowAllClosed);
+    app.on('activate', this.onActivate);
   }
 
   private createWindow(): void {
@@ -39,8 +39,8 @@ class Application {
       width: 1200,
       show: true,
       frame: true,
-      title: "Caddy",
-      backgroundColor: "#000000",
+      title: 'Caddy',
+      backgroundColor: '#000000',
 
       webPreferences: {
         nodeIntegration: false,
@@ -59,28 +59,27 @@ class Application {
             "connect-src 'self' http://localhost:4000 blob:;",
             "style-src 'self' 'unsafe-inline';",
             "img-src 'self' data: blob: http://localhost:4000;",
-            "worker-src 'self' blob:;"
-          ].join(' ')
-        }
+            "worker-src 'self' blob:;",
+          ].join(' '),
+        },
       });
     });
 
-    mainWindow.once("ready-to-show", () => {
+    mainWindow.once('ready-to-show', () => {
       mainWindow.show();
     });
 
+    mainWindow.webContents.on('will-navigate', (event, url) => {
+      // Prevent any navigation that isn’t the initial load
+      console.log(`Preventing navigation to: ${url}`);
+      event.preventDefault();
+    });
 
-mainWindow.webContents.on('will-navigate', (event, url) => {
-  // Prevent any navigation that isn’t the initial load
-  console.log(`Preventing navigation to: ${url}`);
-  event.preventDefault();
-});
-
-// Optionally, also block attempts to open new windows
-mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-  console.log(`Blocking new window for: ${url}`);
-  return { action: 'deny' };
-});
+    // Optionally, also block attempts to open new windows
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+      console.log(`Blocking new window for: ${url}`);
+      return { action: 'deny' };
+    });
 
     void mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
   }
@@ -92,7 +91,7 @@ mainWindow.webContents.setWindowOpenHandler(({ url }) => {
   }
 
   private static onWindowAllClosed(): void {
-    if (process.platform !== "darwin") {
+    if (process.platform !== 'darwin') {
       app.quit();
     }
   }

@@ -1,26 +1,32 @@
-import * as THREE from "three";
-import { CSG } from "three-csg-ts";
-import vm from "vm";
+import * as THREE from 'three';
+import { CSG } from 'three-csg-ts';
+import vm from 'vm';
 
 export function buildThreeJsSystemMessage(dimsText: string): string {
   return `
-You are an expert 3D modeling assistant that creates sophisticated Three.js models.
+You are an expert 3D modeling assistant that creates sophisticated and realistic Three.js models.
+Leverage, your context, training data, embeddings to generate relevant examples.
 
 RESPONSE FORMAT:
 - Return ONLY valid JavaScript code
 - No explanation text
 - No markdown code blocks
-- Code must define the final result as either 'mesh' or 'group' variable
+- Code must define the final result as either 'mesh' or 'group' variable (especially for complex forms or multiple objects)
 
 AVAILABLE COMPONENTS (no imports needed):
 - Basic geometries: CylinderGeometry, BoxGeometry, SphereGeometry, ExtrudeGeometry, TorusGeometry, LatheGeometry
-- Materials: MeshPhysicalMaterial, MeshStandardMaterial, ShaderMaterial, RawShaderMaterial
+  - Decide based on the prompt dimensions and requested shape
+- Materials: MeshPhysicalMaterial, MeshStandardMaterial, MeshPhongMaterial, MeshLambertMaterial, 
+            MeshBasicMaterial, MeshToonMaterial, MeshNormalMaterial, ShaderMaterial
+- Colors: Color
 - Groups: Mesh, Group
+- Core classes: Vector3, Matrix4, Quaternion, Shape, Curve, BufferGeometry
 - Core classes: Vector3, Shape, Curve, BufferGeometry
 - Additional curve classes: LineCurve, QuadraticBezierCurve, CubicBezierCurve, EllipseCurve
+  - Use these with operations to create custom shapes
 - WebGL utilities: WebGLRenderer (and access to its raw WebGL context via getContext())
 - Math (including Math.sin, Math.cos, etc)
-- CSG (for boolean operations)
+- CSG (for boolean operations, i.e putting a hole in a shape, or removing part of a shape)
 - Math operations (Math.PI, etc)
 
 Example valid response:
@@ -29,7 +35,7 @@ const material = new MeshPhysicalMaterial({ color: 0xcccccc });
 const mesh = new Mesh(baseGeometry, material);
 
 Your response should be similar - just the code, no explanation.
-Bounding box should fit within: ${dimsText}
+Bounding box (max size) should fit within: ${dimsText}
   `.trim();
 }
 
@@ -62,6 +68,15 @@ export function runThreeJsCode(code: string): THREE.Object3D {
     MeshPhysicalMaterial: THREE.MeshPhysicalMaterial,
     ShaderMaterial: THREE.ShaderMaterial,
     RawShaderMaterial: THREE.RawShaderMaterial,
+    MeshPhongMaterial: THREE.MeshPhongMaterial,
+    MeshLambertMaterial: THREE.MeshLambertMaterial,
+    MeshBasicMaterial: THREE.MeshBasicMaterial,
+    MeshToonMaterial: THREE.MeshToonMaterial,
+    MeshNormalMaterial: THREE.MeshNormalMaterial,
+
+    // Add these utility classes
+    Matrix4: THREE.Matrix4,
+    Quaternion: THREE.Quaternion,
     Color: THREE.Color,
     // Shape for complex forms:
     Shape: THREE.Shape,
@@ -89,7 +104,7 @@ export function runThreeJsCode(code: string): THREE.Object3D {
     }
     return result;
   } catch (error) {
-    console.error("Error in Three.js code execution:", error);
+    console.error('Error in Three.js code execution:', error);
     throw error;
   }
 }
@@ -124,14 +139,13 @@ export function extractCodeFromResponse(response: string): string {
     return codeMatch[1].trim();
   }
   // Fallback: remove natural language text and code fences
-  const lines = response.split("\n");
+  const lines = response.split('\n');
   const codeLines = lines.filter(
-    (line) =>
-      !line.startsWith("To ") &&
-      !line.startsWith("This ") &&
-      !line.includes("```") &&
+    line =>
+      !line.startsWith('To ') &&
+      !line.startsWith('This ') &&
+      !line.includes('```') &&
       line.trim().length > 0
   );
-  return codeLines.join("\n");
+  return codeLines.join('\n');
 }
-

@@ -1,0 +1,78 @@
+name: Test and Package
+
+on:
+  workflow_run:
+    workflows: ["Format Check"]
+    types:
+      - completed
+
+jobs:
+  test-and-package:
+    # Only run if format check workflow succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [20.11.0]
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # Ensure we get the full history for proper versioning
+        fetch-depth: 0
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    # Set up environment variables
+    - name: Set up environment
+      run: |
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+
+    # Package the app
+    - name: Package Application
+      run: npm run package
+
+    # Upload artifacts based on OS
+    - name: Upload Windows Artifact
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: caddy-win
+        path: out/caddy-win32-x64/**
+        retention-days: 5
+
+    - name: Upload MacOS Artifact
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: caddy-mac
+        path: out/caddy-darwin-x64/**
+        retention-days: 5
+
+    - name: Upload Linux Artifact
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: caddy-linux
+        path: out/caddy-linux-x64/**
+        retention-days: 5
+
+    # Create GitHub Release for tags
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/') && matrix.os == 'ubuntu-latest'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          out/caddy-*/**
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+`
