@@ -151,14 +151,14 @@ app.post(
 
         const response = correction.choices[0]?.message?.content?.trim() || '';
         const newCodeSnippet = extractCodeFromResponse(response);
-        req.session.previousCodeSnippet = newCodeSnippet;
-        console.log("Correction:", newCodeSnippet);
+        req.session.previousCodeSnippet = codeSnippet + newCodeSnippet;
+        console.log("Correction:", codeSnippet + newCodeSnippet);
 
         try {
-          threeObject = runThreeJsCode(newCodeSnippet);
+          threeObject = runThreeJsCode(codeSnippet + newCodeSnippet);
         } catch (err) {
           console.error('Snippet eval error:', err);
-          res.status(500).json({ error: 'Failed to eval snippet', code: codeSnippet });
+          res.status(500).json({ error: 'Failed to eval snippet', code: codeSnippet + newCodeSnippet });
           return;
         }
       }
