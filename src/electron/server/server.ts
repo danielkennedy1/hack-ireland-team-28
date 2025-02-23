@@ -18,6 +18,8 @@ import {
   buildDimsText,
 } from "./geometry";
 
+
+
 dotenv.config();
 
 // Configure OpenAI
