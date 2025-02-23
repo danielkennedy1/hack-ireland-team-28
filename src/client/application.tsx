@@ -69,8 +69,8 @@ const Application = () => {
         min: 0.01,
         max: 1,
     },
-    color: "yellow",
-    hoverColor: "green",
+    color: "#ffff00",
+    hoverColor: "#9090ff",
   });
 
   const handleSubmit = async () => {
@@ -127,15 +127,15 @@ const Application = () => {
             placeholder="Enter your model description..."
             style={{ width: '300px', marginRight: '10px' }}
           />
-          <button type="button" onClick={handleSubmit}>Generate Model</button>
-        <p>{status}</p>
+          <button style={{"backgroundColor": "white", "color": "black"}} type="button" onClick={handleSubmit}>Generate Model</button>
+        <p style={{"color": "white"}}>{status}</p>
         {modelPath && <p>Model saved to: {modelPath}</p>}
       </div>
 
       <div style={{ flex: 1 }}>
         <Canvas>
-          <ambientLight />
-          <pointLight position={[10, 10, 10]} />
+          <ambientLight intensity={0.1}/>
+          <pointLight position={[10, 10, 10]} intensity={0.3} />
           <ModelScene
             position={[values.x, values.y, values.z]}
             color={values.color}

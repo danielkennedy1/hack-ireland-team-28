@@ -1,6 +1,7 @@
 import React, { useState, Suspense } from "react";
 import { OrbitControls, Box } from "@react-three/drei";
 import { BufferGeometry } from "three";
+import { useThree } from "@react-three/fiber";
 
 interface ModelSceneProps {
     position: [number, number, number];
@@ -12,6 +13,10 @@ interface ModelSceneProps {
 
 const Model: React.FC<ModelSceneProps> = ({ position, color, hoverColor, scale, geometry }) => {
     const [hovered, setHovered] = useState(false);
+
+    const {camera} = useThree();
+
+    camera.lookAt(0, 0, 0);
 
     return (geometry &&
         <mesh
