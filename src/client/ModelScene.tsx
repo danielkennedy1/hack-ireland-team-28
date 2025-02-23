@@ -27,33 +27,17 @@ const Model: React.FC<ModelSceneProps> = ({ position, color, hoverColor, scale, 
     grid.position.set(0, 0, 0);
     grid.lookAt(0, 0, 0);
 
-    return (
-        geometry && (
-            <group>
-                <mesh
-                    position={position}
-                    rotation={[0, 0.5, 0]}
-                    scale={scale}
-                    geometry={geometry}
-                    onPointerOver={() => setHovered(true)}
-                    onPointerOut={() => setHovered(false)}
-                >
-                    <meshStandardMaterial color={hovered ? hoverColor : color} />
-                </mesh>
-                {showGrid &&
-                    <primitive object={grid} />
-                }
-            </group>
-        )
-    );
-};
-
-// Fallback component when model is loading or errored
-const DefaultBox: React.FC<ModelSceneProps> = ({ position, scale, color, hoverColor }) => {
-    return (
-        <mesh scale={scale}>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshStandardMaterial />
+  return (
+    (
+      <group>
+        <mesh
+          scale={scale}
+          geometry={geometry}
+          onPointerOver={() => setHovered(true)}
+          onPointerOut={() => setHovered(false)}
+        >
+          {children}
+          <meshStandardMaterial color={hovered ? hoverColor : color} />
         </mesh>
     );
 };

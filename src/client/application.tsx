@@ -10,28 +10,27 @@ import { ModelScene } from "./ModelScene";
 
 
 const Application = () => {
-    const [prompt, setPrompt] = useState("");
-    const [status, setStatus] = useState<Status>(Status.IDLE);
-    const [modelPath, setModelPath] = useState<string | null>(null);
-    const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
-    const [errMsg, setErrMsg] = useState<string | null>(null);
-    const [codeSnippet, setCodeSnippet] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState({ isCorrection: false, prompt: "" });
+  const [status, setStatus] = useState<Status>(Status.IDLE);
+  const [modelPath, setModelPath] = useState<string | null>(null);
+  const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
+  const [errMsg, setErrMsg] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fullModelPath = modelPath
-            ? `${CONFIG.SERVER_URL}/assets/${modelPath}`
-            : `${CONFIG.SERVER_URL}/assets/cube.stl`;
+  useEffect(() => {
+    const fullModelPath = modelPath
+      ? `${CONFIG.SERVER_URL}/assets/${modelPath}`
+      : `${CONFIG.SERVER_URL}/assets/cube.stl`;
 
-        function loadModel() {
-            new STLLoader().load(fullModelPath, (geometry) => {
-                // Only update state if still mounted
-                setGeometry(geometry);
-            });
-        }
+    function loadModel() {
+      new STLLoader().load(fullModelPath, (geometry) => {
+        // Only update state if still mounted
+        setGeometry(geometry);
+      });
+    }
 
-        const timer = setTimeout(() => {
-            loadModel();
-        }, 500);
+    const timer = setTimeout(() => {
+      loadModel();
+    }, 500);
 
         // Cleanup: clear the timer and mark as unmounted for this effect instance
         return () => {
@@ -143,9 +142,16 @@ const Application = () => {
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Whisper status={status} setStatus={setStatus} setPrompt={setPrompt} ></Whisper>
 
-            {
-                (status === Status.ERROR) && <p style={{ "color": "red" }}>Error generating model: {errMsg} </p>
-            }
+  const values = useControls({
+    color: "#ffff00",
+    hoverColor: "#9090ff",
+    grid: folder({
+      showGrid: true,
+      gridSize: { value: 10, min: 5, max: 50, step: 1 },
+      gridDivisions: { value: 10, min: 2, max: 50, step: 1 },
+      gridColor: "#ffffff"
+    })
+  });
 
             <div style={{ flex: 1 }}>
                 <Canvas>
