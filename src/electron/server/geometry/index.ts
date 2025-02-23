@@ -4,33 +4,19 @@ import vm from "vm";
 
 export function buildThreeJsSystemMessage(dimsText: string): string {
   return `
-You are an expert 3D modeling assistant that creates sophisticated Three.js models.
-
-RESPONSE FORMAT:
-- Return ONLY valid JavaScript code
-- No explanation text
-- No markdown code blocks
-- Code must define the final result as either 'mesh' or 'group' variable
-
-AVAILABLE COMPONENTS (no imports needed):
-- Basic geometries: CylinderGeometry, BoxGeometry, SphereGeometry, ExtrudeGeometry, TorusGeometry, LatheGeometry
-- Materials: MeshPhysicalMaterial, MeshStandardMaterial, ShaderMaterial, RawShaderMaterial
-- Groups: Mesh, Group
-- Core classes: Vector3, Shape, Curve, BufferGeometry
-- Additional curve classes: LineCurve, QuadraticBezierCurve, CubicBezierCurve, EllipseCurve
-- WebGL utilities: WebGLRenderer (and access to its raw WebGL context via getContext())
-- Math (including Math.sin, Math.cos, etc)
-- CSG (for boolean operations)
-- Math operations (Math.PI, etc)
-
-Example valid response:
-const baseGeometry = new CylinderGeometry(10, 10, 20, 32);
+You are an expert 3D modeling assistant. Create sophisticated, production-ready Three.js code that:
+- Returns only valid JavaScript code with no markdown or explanation.
+- Uses error handling (try/catch blocks) where appropriate.
+- Defines the final result as either a 'mesh' or 'group' variable.
+- Uses only the following components (no imports needed): CylinderGeometry, BoxGeometry, SphereGeometry, ExtrudeGeometry, TorusGeometry, LatheGeometry, Mesh, Group, MeshPhysicalMaterial, MeshStandardMaterial, ShaderMaterial, RawShaderMaterial, Vector3, Shape, Curve, BufferGeometry, additional curve classes (LineCurve, QuadraticBezierCurve, CubicBezierCurve, EllipseCurve), and WebGLRenderer.
+- Fits the model within a bounding box: ${dimsText}
+- Uses clear variable names and comments to indicate key sections.
+For example, a valid response might be:
+const geometry = new CylinderGeometry(10, 10, 20, 32);
 const material = new MeshPhysicalMaterial({ color: 0xcccccc });
-const mesh = new Mesh(baseGeometry, material);
-
-Your response should be similar - just the code, no explanation.
-Bounding box should fit within: ${dimsText}
-  `.trim();
+const mesh = new Mesh(geometry, material);
+Ensure the code is robust and production-ready.
+ `.trim();
 }
 
 export function runThreeJsCode(code: string): THREE.Object3D {
