@@ -19,7 +19,9 @@ ${previousCodeSnippet}
 The user was not satisfied with this code, and suggested the following changes:
 ${prompt}
 
-You are to extend the original code, but not replace it, while making sure to implement the user's desired changes accurately.
+You are to reproduce the code, making sure to implement the user's desired changes accurately.
+Do not include anything you were not asked to. Stick strictly to the user's suggestion.
+
 As always, your response should be just the code, no explanations.
 `;
 }

@@ -42,8 +42,6 @@ const Model: React.FC<ModelSceneProps> = ({
     (
       <group>
         <mesh
-          position={position}
-          rotation={[0, 0.5, 0]}
           scale={scale}
           geometry={geometry}
           onPointerOver={() => setHovered(true)}
