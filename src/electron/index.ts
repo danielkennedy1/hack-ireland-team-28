@@ -16,11 +16,11 @@ class Application {
         const fileUrl = request.url.replace('static://', '');
         // Check if it's a model file
         if (fileUrl.endsWith('.stl')) {
-          const filePath = path.join('/Users/adambyrne/code/hack-ireland-team-28/.webpack/renderer/assets', fileUrl);
+          const filePath = path.join('C:/Users/danie/Development/hack-ireland-team-28/.webpack/renderer/assets', fileUrl);
           callback(filePath);
         } else {
           // Handle other static files from the assets directory
-          const filePath = path.join('/Users/adambyrne/code/hack-ireland-team-28/.webpack/renderer/assets', fileUrl);
+          const filePath = path.join('C:/Users/danie/Development/hack-ireland-team-28/.webpack/renderer/assets', fileUrl);
           callback(filePath);
         }
       });

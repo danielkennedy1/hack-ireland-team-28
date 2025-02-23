@@ -31,7 +31,7 @@ const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 // Import THREE.js components on server side
 import * as THREE from "three";
 // If you installed three-stdlib:
-import { STLExporter } from "three-stdlib";
+import { STLExporter } from "three/addons/exporters/STLExporter";
 
 const app = express();
 app.use(cors({
@@ -41,7 +41,7 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 
-let outputDirectory = '/Users/adambyrne/code/hack-ireland-team-28/.webpack/renderer/assets';
+let outputDirectory = 'C:/Users/danie/Development/hack-ireland-team-28/.webpack/renderer/assets';
 
 export const setOutputDirectory = (dir: string) => {
   outputDirectory = dir;
@@ -124,6 +124,7 @@ app.post("/generate-model", async (req: Request, res: Response, next: NextFuncti
     const timestamp = Date.now();
     const filename = `model-${timestamp}.stl`;
     const outputPath = path.join(outputDirectory, filename);
+    console.log("stlString:", stlString);
     fs.writeFileSync(outputPath, stlString, "utf8");
 
     res.json({
