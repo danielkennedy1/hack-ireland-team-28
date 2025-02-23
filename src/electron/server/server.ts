@@ -34,8 +34,8 @@ const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 // Import THREE.js components on server side
 import * as THREE from 'three';
 import { transcriptionFromBlob } from './transcribe';
-import { isUploadable, Uploadable } from 'openai/uploads';
-import { STLExporter } from 'three/addons/exporters/STLExporter';
+import { Uploadable } from 'openai/uploads';
+import { STLExporter } from 'three/examples/jsm/exporters/STLExporter';
 
 const app = express();
 const upload = multer();
@@ -95,9 +95,11 @@ app.post(
       const userMessage = prompt;
 
       const completion = await openai.chat.completions.create({
-        model: 'o1-preview',
+        // model: 'o1-preview',
+        model: "gpt-4o",
         messages: [{ role: 'user', content: systemMessage + '\n\n' + userMessage }],
-        max_completion_tokens: 32000,
+        // max_completion_tokens: 32000,
+        max_completion_tokens: 1500,
       });
 
       const response = completion.choices[0]?.message?.content?.trim() || '';

@@ -87,7 +87,7 @@ export const Whisper = ({ setPrompt, status, setStatus }: WhisperProps) => {
     };
 
     // Pulsing style applied to transcript when waiting
-    const pulsingStyle = status === Status.WAITING ? { animation: "pulse 1.5s infinite" } : {};
+    const pulsingStyle = status === Status.WAITING ? { animation: "pulse 1.0s infinite" } : {};
 
     return (
         <>
@@ -95,7 +95,7 @@ export const Whisper = ({ setPrompt, status, setStatus }: WhisperProps) => {
             <style>{`
                 @keyframes pulse {
                     0% { opacity: 1; }
-                    50% { opacity: 0.5; }
+                    50% { opacity: 0; }
                     100% { opacity: 1; }
                 }
                 .stylish-button {
