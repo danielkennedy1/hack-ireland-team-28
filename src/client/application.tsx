@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Leva, useControls, folder} from "leva";
+import { Leva, useControls, folder } from "leva";
 import { BufferGeometry } from "three";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
 import { CONFIG } from "../electron/server/config";
@@ -15,6 +15,7 @@ const Application = () => {
     const [modelPath, setModelPath] = useState<string | null>(null);
     const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
     const [errMsg, setErrMsg] = useState<string | null>(null);
+    const [codeSnippet, setCodeSnippet] = useState<string | null>(null);
 
     useEffect(() => {
         const fullModelPath = modelPath
@@ -41,7 +42,7 @@ const Application = () => {
     const values = useControls({
         color: "#ffff00",
         hoverColor: "#9090ff",
-           grid: folder({
+        grid: folder({
             showGrid: true,
             gridSize: { value: 10, min: 5, max: 50, step: 1 },
             gridDivisions: { value: 10, min: 2, max: 50, step: 1 },
@@ -92,12 +93,52 @@ const Application = () => {
 
             setStatus(Status.IDLE);
             setModelPath(data.file_saved); // Set the filename directly
+            setCodeSnippet(data.code_snippet);
         } catch (error) {
             console.error('Generation error:', error);
             setStatus(Status.ERROR);
             setErrMsg(error.message);
         }
     };
+
+    const modelSceneRef = useRef(null);
+
+    const remakeModel = async () => {
+        if (modelSceneRef.current) {
+            try {
+                setStatus(Status.WAITING);
+                const dataUrl = modelSceneRef.current.getCanvasImageDataURL()
+                console.log(dataUrl);
+                const response = await fetch(`${CONFIG.SERVER_URL}/generate-model`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt, img: dataUrl, code: codeSnippet }),
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${errorText}`);
+                }
+
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                setStatus(Status.IDLE);
+                setModelPath(data.file_saved); // Set the filename directly
+                setCodeSnippet(data.code_snippet);
+            }
+            catch (error) {
+                console.error('Generation error:', error);
+                setStatus(Status.ERROR);
+                setErrMsg(error.message);
+            }
+        }
+    }
+
     return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Whisper status={status} setStatus={setStatus} setPrompt={setPrompt} ></Whisper>
@@ -110,21 +151,29 @@ const Application = () => {
                 <Canvas>
                     <ambientLight intensity={0.1} />
                     <pointLight position={[10, 10, 10]} intensity={0.3} />
-             <ModelScene
-    position={[0, 0, 0]}
-    color={values.color}
-    hoverColor={values.hoverColor}
-    scale={0.1}
-    geometry={geometry}
-    showGrid={values.showGrid}
-    gridSize={values.gridSize}
-    gridDivisions={values.gridDivisions}
-    gridColor={values.gridColor}
-/>
+                    <ModelScene
+                        ref={modelSceneRef}
+                        position={[0, 0, 0]}
+                        color={values.color}
+                        hoverColor={values.hoverColor}
+                        scale={0.1}
+                        geometry={geometry}
+                        showGrid={values.showGrid}
+                        gridSize={values.gridSize}
+                        gridDivisions={values.gridDivisions}
+                        gridColor={values.gridColor}
+                    />
                 </Canvas>
             </div>
 
             <Leva />
+            <button
+                disabled={status === Status.ERROR || !prompt}
+                style={{ position: 'absolute', bottom: '20px', left: '20px', zIndex: 1000, padding: '12px 20px', fontSize: '16px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '8px' }}
+                onClick={remakeModel}
+            >
+                pls fix
+            </button>
         </div>
     );
 };
