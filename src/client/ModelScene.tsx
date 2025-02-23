@@ -1,8 +1,8 @@
-import React, { useState, Suspense, useEffect } from "react";
-import { OrbitControls } from "@react-three/drei";
-import { BufferGeometry } from "three";
-import { useThree } from "@react-three/fiber";
-import * as THREE from "three";
+import React, { useState, Suspense, useEffect } from 'react';
+import { OrbitControls } from '@react-three/drei';
+import { BufferGeometry } from 'three';
+import { useThree } from '@react-three/fiber';
+import * as THREE from 'three';
 
 interface ModelSceneProps {
   position: [number, number, number];
@@ -16,7 +16,17 @@ interface ModelSceneProps {
   showGrid?: boolean;
 }
 
-const Model: React.FC<ModelSceneProps> = ({ position, color, hoverColor, scale, geometry, gridSize, gridDivisions, gridColor, showGrid }) => {
+const Model: React.FC<ModelSceneProps> = ({
+  position,
+  color,
+  hoverColor,
+  scale,
+  geometry,
+  gridSize,
+  gridDivisions,
+  gridColor,
+  showGrid,
+}) => {
   const [hovered, setHovered] = useState(false);
   const { camera } = useThree();
   camera.lookAt(0, 0, 0);
@@ -34,7 +44,7 @@ const Model: React.FC<ModelSceneProps> = ({ position, color, hoverColor, scale, 
       geometry = geometry.rotateX(Math.PI / 2);
 
       // Offset position so it sits on the grid
-      geometry = geometry.translate( 0,0,-size.y / 2);
+      geometry = geometry.translate(0, 0, -size.y / 2);
 
       // Snap grid to the bottom of the geometry
       grid.position.z = -size.y / 2;
@@ -77,13 +87,13 @@ const DefaultBox: React.FC<ModelSceneProps> = ({ position, scale, color, hoverCo
   );
 };
 
-export const ModelScene: React.FC<ModelSceneProps> = (props) => {
-    return (
-        <>
-            <OrbitControls />
-            <Suspense fallback={<DefaultBox {...props} />}>
-                <Model {...props} />
-            </Suspense>
-        </>
-    );
+export const ModelScene: React.FC<ModelSceneProps> = props => {
+  return (
+    <>
+      <OrbitControls />
+      <Suspense fallback={<DefaultBox {...props} />}>
+        <Model {...props} />
+      </Suspense>
+    </>
+  );
 };

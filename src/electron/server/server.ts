@@ -96,7 +96,7 @@ app.post(
 
       const completion = await openai.chat.completions.create({
         // model: 'o1-preview',
-        model: "gpt-4o",
+        model: 'gpt-4o',
         messages: [{ role: 'user', content: systemMessage + '\n\n' + userMessage }],
         // max_completion_tokens: 32000,
         max_completion_tokens: 1500,

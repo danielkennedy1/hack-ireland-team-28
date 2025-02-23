@@ -9,7 +9,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || '' });
 
 // Store examples in a more accessible location
 function getExamplesPath(): string {
-  const devPath = path.join(app.getAppPath(), "/embeddings/examples.json");
+  const devPath = path.join(app.getAppPath(), '/embeddings/examples.json');
   return devPath;
 }
 

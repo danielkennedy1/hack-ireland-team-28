@@ -1,6 +1,6 @@
 export enum Status {
-    IDLE,
-    RECORDING,
-    WAITING,
-    ERROR,
+  IDLE,
+  RECORDING,
+  WAITING,
+  ERROR,
 }
