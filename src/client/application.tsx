@@ -1,43 +1,54 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Leva, useControls } from "leva";
 import ModelScene from "./ModelScene";
-import {CONFIG} from "../electron/server/config";
+import { CONFIG } from "../electron/server/config";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
 import { BufferGeometry } from "three";
-
 
 const Application = () => {
   const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState("");
   const [modelPath, setModelPath] = useState<string | null>(null);
-  const [fullModelPath, setFullModelPath] = useState<string | null>(null);
+  const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
+
+  // Create a ref to track mount status
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    setFullModelPath( modelPath ? `${CONFIG.SERVER_URL}/assets/${modelPath}` : `${CONFIG.SERVER_URL}/assets/3DBenchy.stl`)
-  }, [modelPath]);
+    // Whenever modelPath changes, ensure the ref is true for this effect instance
+    isMountedRef.current = true;
 
-  
-    // Use the server URL to load the STL file
-    // State to hold the loaded geometry
-    const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
+    console.log("in useEffect: Model path:", modelPath);
+    const fullModelPath = modelPath
+      ? `${CONFIG.SERVER_URL}/assets/${modelPath}`
+      : `${CONFIG.SERVER_URL}/assets/3DBenchy.stl`;
+    console.log("in useEffect: Full model path:", fullModelPath);
 
-    // Effect to load the model when startLoading is true
-    useEffect(() => {
-        async function loadModel() {
-            new STLLoader().load(fullModelPath, (geometry) => {
-                console.log("Loaded geometry:", geometry);
-                setGeometry(geometry);
-            });
-        }
-        const timer = setTimeout(() => {
-            console.log("Loading model:", fullModelPath);
-            loadModel();
-        }, 3000); // 3000 ms = 3 seconds
-        return () => clearTimeout(timer);
-    }, [fullModelPath]); // Depend on startLoading and fullModelPath
+    function loadModel() {
+      console.log("Loading model:", fullModelPath);
+      new STLLoader().load(fullModelPath, (geometry) => {
+        console.log("Loaded geometry:", geometry);
+        // Only update state if still mounted
+        if (!isMountedRef.current) return;
+        setGeometry(geometry);
+      });
+      console.log("oops");
+    }
 
-  const values = useControls({
+    console.log("oops 99");
+    const timer = setTimeout(() => {
+      console.log("Timer triggered: Loading model:", fullModelPath);
+      loadModel();
+    }, 500);
+    console.log("Timer:", timer);
+
+    // Cleanup: clear the timer and mark as unmounted for this effect instance
+    return () => {
+      clearTimeout(timer);
+      isMountedRef.current = false;
+    };
+  }, [modelPath]);const values = useControls({
     x: {
         value: 0,
         min: -10,
@@ -62,8 +73,7 @@ const Application = () => {
     hoverColor: "green",
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setStatus("Checking server...");
     
     try {
@@ -110,7 +120,6 @@ const Application = () => {
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '20px' }}>
-        <form onSubmit={handleSubmit}>
           <input
             type="text"
             value={prompt}
@@ -118,8 +127,7 @@ const Application = () => {
             placeholder="Enter your model description..."
             style={{ width: '300px', marginRight: '10px' }}
           />
-          <button type="submit">Generate Model</button>
-        </form>
+          <button type="button" onClick={handleSubmit}>Generate Model</button>
         <p>{status}</p>
         {modelPath && <p>Model saved to: {modelPath}</p>}
       </div>

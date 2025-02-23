@@ -67,6 +67,20 @@ class Application {
     mainWindow.once("ready-to-show", () => {
       mainWindow.show();
     });
+
+
+mainWindow.webContents.on('will-navigate', (event, url) => {
+  // Prevent any navigation that isn’t the initial load
+  console.log(`Preventing navigation to: ${url}`);
+  event.preventDefault();
+});
+
+// Optionally, also block attempts to open new windows
+mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+  console.log(`Blocking new window for: ${url}`);
+  return { action: 'deny' };
+});
+
     void mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
   }
 
