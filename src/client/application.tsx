@@ -2,37 +2,38 @@ import React, { useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Leva, useControls } from "leva";
 import ModelScene from "./ModelScene";
-import {CONFIG} from "../electron/server/config";
+import { CONFIG } from "../electron/server/config";
+import Whisper from "./whisper";
 
-interface ApplicationProps {}
+interface ApplicationProps { }
 
 const Application = (props: ApplicationProps) => {
   const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState("");
   const [modelPath, setModelPath] = useState<string | null>(null);
 
-  
+
 
   const values = useControls({
     x: {
-        value: 0,
-        min: -10,
-        max: 10,
+      value: 0,
+      min: -10,
+      max: 10,
     },
     y: {
-        value: 0,
-        min: -10,
-        max: 10,
+      value: 0,
+      min: -10,
+      max: 10,
     },
     z: {
-        value: 0,
-        min: -10,
-        max: 10,
+      value: 0,
+      min: -10,
+      max: 10,
     },
     scale: {
-        value: 0.1,
-        min: 0.01,
-        max: 1,
+      value: 0.1,
+      min: 0.01,
+      max: 1,
     },
     color: "yellow",
     hoverColor: "green",
@@ -41,7 +42,7 @@ const Application = (props: ApplicationProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("Checking server...");
-    
+
     try {
       // First check if server is accessible with proper fetch options
       const healthCheck = await fetch(CONFIG.SERVER_URL, {
@@ -50,13 +51,13 @@ const Application = (props: ApplicationProps) => {
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (!healthCheck.ok) {
         throw new Error('Server is not responding');
       }
-      
+
       setStatus("Generating...");
-      
+
       // Make the POST request directly instead of using the electron bridge
       const response = await fetch(`${CONFIG.SERVER_URL}/generate-model`, {
         method: 'POST',
@@ -65,17 +66,17 @@ const Application = (props: ApplicationProps) => {
         },
         body: JSON.stringify({ prompt }),
       });
-  
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Server error: ${errorText}`);
       }
-  
+
       const data = await response.json();
       if (data.error) {
         throw new Error(data.error);
       }
-      
+
       setStatus("Generated successfully!");
       setModelPath(data.file_saved);
     } catch (error) {
@@ -85,6 +86,8 @@ const Application = (props: ApplicationProps) => {
   };
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Whisper></Whisper>
+
       <div style={{ padding: '20px' }}>
         <form onSubmit={handleSubmit}>
           <input
