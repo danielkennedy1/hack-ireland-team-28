@@ -63,7 +63,7 @@ export const ModelScene: React.FC<ModelSceneProps> = props => {
     <>
       <OrbitControls />
       <Model {...props}>
-        geometry ? <boxGeometry args={[1, 1, 1]} /> : ""
+        {props.geometry ? "" : <boxGeometry args={[1, 1, 1]} />}
       </Model>
     </>
   );

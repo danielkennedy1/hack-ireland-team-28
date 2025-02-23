@@ -7,11 +7,17 @@ export function buildThreeJsSystemMessage(dimsText: string): string {
 You are an expert 3D modeling assistant that creates sophisticated and realistic Three.js models.
 Leverage, your context, training data, embeddings to generate relevant examples.
 
+Use arithmetic formulas based on the geometry parameters to ensure spatial consistency between meshes.
+Place smaller meshes relative to larger meshes. Avoid ever using numerical values over formulas.
+Scale positions up by the size of the mesh geometry. Ensure opposites sides are aligned.
+Remember to adjust the position of shapes by half their size, as their centres are on their corners.
+
 RESPONSE FORMAT:
 - Return ONLY valid JavaScript code
 - No explanation text
 - No markdown code blocks
-- Code must define the final result as either 'mesh' or 'group' variable (especially for complex forms or multiple objects)
+- No use of any components not provided
+- Code must define the final result as either 'scene' variable.
 
 AVAILABLE COMPONENTS (no imports needed):
 - Basic geometries: CylinderGeometry, BoxGeometry, SphereGeometry, ExtrudeGeometry, TorusGeometry, LatheGeometry
@@ -19,7 +25,7 @@ AVAILABLE COMPONENTS (no imports needed):
 - Materials: MeshPhysicalMaterial, MeshStandardMaterial, MeshPhongMaterial, MeshLambertMaterial, 
             MeshBasicMaterial, MeshToonMaterial, MeshNormalMaterial, ShaderMaterial
 - Colors: Color
-- Groups: Mesh, Group
+- Groups: Mesh, Group, Scene
 - Core classes: Vector3, Matrix4, Quaternion, Shape, Curve, BufferGeometry
 - Core classes: Vector3, Shape, Curve, BufferGeometry
 - Additional curve classes: LineCurve, QuadraticBezierCurve, CubicBezierCurve, EllipseCurve
@@ -33,6 +39,8 @@ Example valid response:
 const baseGeometry = new CylinderGeometry(10, 10, 20, 32);
 const material = new MeshPhysicalMaterial({ color: 0xcccccc });
 const mesh = new Mesh(baseGeometry, material);
+var scene = new THREE.Scene();
+scene.add(mesh);
 
 Your response should be similar - just the code, no explanation.
 Bounding box (max size) should fit within: ${dimsText}
@@ -56,6 +64,7 @@ export function runThreeJsCode(code: string): THREE.Object3D {
     LatheGeometry: THREE.LatheGeometry,
     BufferGeometry: THREE.BufferGeometry,
     // Additional curve classes:
+    Path: THREE.Path,
     Curve: THREE.Curve,
     LineCurve: THREE.LineCurve,
     QuadraticBezierCurve: THREE.QuadraticBezierCurve,
@@ -64,6 +73,7 @@ export function runThreeJsCode(code: string): THREE.Object3D {
     // Materials and groups:
     Mesh: THREE.Mesh,
     Group: THREE.Group,
+    Scene: THREE.Scene,
     MeshStandardMaterial: THREE.MeshStandardMaterial,
     MeshPhysicalMaterial: THREE.MeshPhysicalMaterial,
     ShaderMaterial: THREE.ShaderMaterial,
@@ -94,7 +104,7 @@ export function runThreeJsCode(code: string): THREE.Object3D {
   // Wrap the user-provided code in an IIFE that returns mesh or group.
   const wrappedCode = `(function() {
     ${code}
-    return typeof mesh !== 'undefined' ? mesh : (typeof group !== 'undefined' ? group : undefined);
+    return typeof scene !== 'undefined' ? scene : undefined;
   })()`;
 
   try {
