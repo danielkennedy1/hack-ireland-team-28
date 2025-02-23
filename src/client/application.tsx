@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Leva, useControls } from "leva";
+import { Leva, useControls, folder} from "leva";
 import { BufferGeometry } from "three";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
 import { CONFIG } from "../electron/server/config";
@@ -41,6 +41,12 @@ const Application = () => {
     const values = useControls({
         color: "#ffff00",
         hoverColor: "#9090ff",
+           grid: folder({
+            showGrid: true,
+            gridSize: { value: 10, min: 5, max: 50, step: 1 },
+            gridDivisions: { value: 10, min: 2, max: 50, step: 1 },
+            gridColor: "#ffffff"
+        })
     });
 
     useEffect(() => {
@@ -104,13 +110,17 @@ const Application = () => {
                 <Canvas>
                     <ambientLight intensity={0.1} />
                     <pointLight position={[10, 10, 10]} intensity={0.3} />
-                    <ModelScene
-                        position={[0, 0, 0]}
-                        color={values.color}
-                        hoverColor={values.hoverColor}
-                        scale={0.1}
-                        geometry={geometry}
-                    />
+             <ModelScene
+    position={[0, 0, 0]}
+    color={values.color}
+    hoverColor={values.hoverColor}
+    scale={0.1}
+    geometry={geometry}
+    showGrid={values.showGrid}
+    gridSize={values.gridSize}
+    gridDivisions={values.gridDivisions}
+    gridColor={values.gridColor}
+/>
                 </Canvas>
             </div>
 
