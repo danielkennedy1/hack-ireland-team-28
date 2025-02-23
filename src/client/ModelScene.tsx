@@ -1,7 +1,7 @@
-import React, { useState, Suspense } from 'react';
-import { OrbitControls, Box } from '@react-three/drei';
-import { BufferGeometry } from 'three';
-import { useThree } from '@react-three/fiber';
+import React, { useState, Suspense } from "react";
+import { OrbitControls } from "@react-three/drei";
+import { BufferGeometry } from "three";
+import { useThree } from "@react-three/fiber";
 
 interface ModelSceneProps {
   position: [number, number, number];
@@ -43,15 +43,14 @@ const DefaultBox: React.FC<ModelSceneProps> = ({ position, scale, color, hoverCo
   );
 };
 
-const ModelScene: React.FC<ModelSceneProps> = props => {
-  return (
-    <>
-      <OrbitControls />
-      <Suspense fallback={<DefaultBox {...props} />}>
-        <Model {...props} />
-      </Suspense>
-    </>
-  );
-};
 
-export default ModelScene;
+export const ModelScene: React.FC<ModelSceneProps> = (props) => {
+    return (
+        <>
+            <OrbitControls />
+            <Suspense fallback={<DefaultBox {...props} />}>
+                <Model {...props} />
+            </Suspense>
+        </>
+    );
+};
