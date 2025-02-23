@@ -1,17 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Leva, useControls } from "leva";
 import ModelScene from "./ModelScene";
 import {CONFIG} from "../electron/server/config";
+import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
+import { BufferGeometry } from "three";
 
-interface ApplicationProps {}
 
-const Application = (props: ApplicationProps) => {
+const Application = () => {
   const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState("");
   const [modelPath, setModelPath] = useState<string | null>(null);
+  const [fullModelPath, setFullModelPath] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFullModelPath( modelPath ? `${CONFIG.SERVER_URL}/assets/${modelPath}` : `${CONFIG.SERVER_URL}/assets/3DBenchy.stl`)
+  }, [modelPath]);
 
   
+    // Use the server URL to load the STL file
+    // State to hold the loaded geometry
+    const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
+
+    // Effect to load the model when startLoading is true
+    useEffect(() => {
+        async function loadModel() {
+            new STLLoader().load(fullModelPath, (geometry) => {
+                console.log("Loaded geometry:", geometry);
+                setGeometry(geometry);
+            });
+        }
+        const timer = setTimeout(() => {
+            console.log("Loading model:", fullModelPath);
+            loadModel();
+        }, 3000); // 3000 ms = 3 seconds
+        return () => clearTimeout(timer);
+    }, [fullModelPath]); // Depend on startLoading and fullModelPath
 
   const values = useControls({
     x: {
@@ -109,7 +133,7 @@ const Application = (props: ApplicationProps) => {
             color={values.color}
             hoverColor={values.hoverColor}
             scale={values.scale}
-            modelPath={modelPath}
+            geometry={geometry}
           />
         </Canvas>
       </div>
