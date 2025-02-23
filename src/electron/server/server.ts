@@ -153,7 +153,7 @@ app.post("/transcribe", upload.single("audio"), async (req: Request, res: Respon
     const audio = fs.createReadStream(path.join(outputDirectory, "/speech.wav"));
 
     // Call API to get transcript
-    const transcript = await transcriptionFromBlob(audio as Uploadable);
+    const transcript = await transcriptionFromBlob(audio as Uploadable, "en");
     res.json({ message: "Success", transcript: transcript });
 
   } catch (err: any) {

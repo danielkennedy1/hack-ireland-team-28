@@ -6,16 +6,11 @@ dotenv.config();
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "" });
 
-const createAudioFile = async (audioFile: Express.Multer.File) => {
-  await openai.files.create({
-    file: audioFile,
-  });
-}
-
-export const transcriptionFromBlob = async (audioFile: Uploadable) => {
+export const transcriptionFromBlob = async (audioFile: Uploadable, language: string) => {
   const response = await openai.audio.transcriptions.create({
     model: "whisper-1",
     file: audioFile,
+    language: language,
   });
 
   return response.text;
