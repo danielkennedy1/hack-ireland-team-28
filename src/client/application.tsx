@@ -78,7 +78,7 @@ const Application = (props: ApplicationProps) => {
       }
 
       setStatus("Generated successfully!");
-      setModelPath(data.file_saved);
+      setModelPath(data.file_saved); // Set the filename directly
     } catch (error) {
       console.error('Generation error:', error);
       setStatus(`Error: ${error.message}`);
