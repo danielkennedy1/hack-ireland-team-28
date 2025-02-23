@@ -18,7 +18,7 @@ interface ThreeJSExample {
 
 async function computeEmbedding(text: string): Promise<number[]> {
   const response = await openai.embeddings.create({
-    model: 'text-embedding-ada-002',
+    model: 'text-embedding-3-large',
     input: text,
   });
   return response.data[0].embedding;
@@ -26,7 +26,7 @@ async function computeEmbedding(text: string): Promise<number[]> {
 
 async function main() {
   // Path to your examples JSON file (adjust as needed) - ../embeddings/examples.json
-  const inputPath =  'embeddings/examples.json';
+  const inputPath = 'embeddings/examples.json';
   // Path to save the updated examples JSON file
   const outputPath = 'embeddings/examples_with_embeddings.json';
 
