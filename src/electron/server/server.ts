@@ -14,11 +14,11 @@ import { buildRetrievalContext } from './retrieval';
 
 // Import geometry functions
 import {
-    buildThreeJsSystemMessage,
-    runThreeJsCode,
-    extractDimensionsMm,
-    extractCodeFromResponse,
-    buildDimsText,
+  buildThreeJsSystemMessage,
+  runThreeJsCode,
+  extractDimensionsMm,
+  extractCodeFromResponse,
+  buildDimsText,
 } from './geometry';
 
 dotenv.config();
@@ -26,8 +26,8 @@ dotenv.config();
 // Configure OpenAI
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 if (!OPENAI_API_KEY) {
-    console.error('OpenAI API key not found. Set OPENAI_API_KEY in .env or environment.');
-    process.exit(1);
+  console.error('OpenAI API key not found. Set OPENAI_API_KEY in .env or environment.');
+  process.exit(1);
 }
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
@@ -49,11 +49,11 @@ declare module 'express-session' {
 const app = express();
 const upload = multer();
 app.use(
-    cors({
-        origin: 'http://localhost:3000',
-        methods: ['GET', 'POST'],
-        credentials: true,
-    })
+  cors({
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+    credentials: true,
+  })
 );
 
 app.use(bodyParser.json());
@@ -64,51 +64,53 @@ app.use(session({ secret: "4b85a753-f50b-4165-9963-0ed2ba11fcfa" }));
 let outputDirectory = path.join(electron_app.getAppPath(), '/assets');
 
 export const setOutputDirectory = (dir: string) => {
-    outputDirectory = dir;
-    if (!fs.existsSync(outputDirectory)) {
-        fs.mkdirSync(outputDirectory, { recursive: true });
-    }
+  outputDirectory = dir;
+  if (!fs.existsSync(outputDirectory)) {
+    fs.mkdirSync(outputDirectory, { recursive: true });
+  }
 };
 
 export const start = () => {
-    console.log(path.join(__dirname, 'assets'));
-    app.listen(CONFIG.SERVER_PORT, () => {
-        console.log(`Server running on ${CONFIG.SERVER_URL}`);
-    });
+  console.log(path.join(__dirname, 'assets'));
+  app.listen(CONFIG.SERVER_PORT, () => {
+    console.log(`Server running on ${CONFIG.SERVER_URL}`);
+  });
 };
 
 app.get('/', (req: Request, res: Response) => {
-    res.send('Hello from Express + Three.js + OpenAI!');
+  res.send('Hello from Express + Three.js + OpenAI!');
 });
 
 app.use('/assets', express.static(outputDirectory));
 
 app.post(
-    '/generate-model',
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const prompt = req.body?.prompt;
-            if (!prompt) {
-                res.status(400).json({ error: "Missing 'prompt' in request body." });
-                return;
-            }
+  '/generate-model',
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const prompt = req.body?.prompt;
+      if (!prompt) {
+        res.status(400).json({ error: "Missing 'prompt' in request body." });
+        return;
+      }
 
-            // Extract dimensions and build bounding box text
-            const dims = extractDimensionsMm(prompt);
-            const dimsText = buildDimsText(dims);
+      const correction = req.body?.correction;
 
-            // Retrieve relevant Three.js examples for the prompt
-            const retrievalContext = await buildRetrievalContext(prompt);
+      // Extract dimensions and build bounding box text
+      const dims = extractDimensionsMm(prompt);
+      const dimsText = buildDimsText(dims);
 
-            // Build the system message including original instructions and the retrieval context
-            const systemMessage = `${buildThreeJsSystemMessage(dimsText)}\n\n${retrievalContext}`;
+      // Retrieve relevant Three.js examples for the prompt
+      const retrievalContext = await buildRetrievalContext(prompt);
+
+      // Build the system message including original instructions and the retrieval context
+      const systemMessage = `${buildThreeJsSystemMessage(dimsText)}\n\n${retrievalContext}`;
 
       // Use the user prompt as input
       let userMessage = "";
       if (req.session?.previousCodeSnippet !== undefined) {
 
       }
-      if (isCorrection === true && req.session.previousCodeSnippet !== undefined) {
+      if (correction === true && req.session.previousCodeSnippet !== undefined) {
         userMessage = buildPromptCorrectionSystemPrompt(prompt, req.session.previousCodeSnippet);
       } else {
         userMessage = prompt + " Make it consistent and include details.";
@@ -122,14 +124,14 @@ app.post(
 
       const completion = await openai.chat.completions.create(completionParams);
 
-            const response = completion.choices[0]?.message?.content?.trim() || '';
-            if (!response) {
-                res.status(500).json({ error: 'GPT returned empty response.' });
-                return;
-            }
+      const response = completion.choices[0]?.message?.content?.trim() || '';
+      if (!response) {
+        res.status(500).json({ error: 'GPT returned empty response.' });
+        return;
+      }
 
-            const codeSnippet = extractCodeFromResponse(response);
-            console.log('Executing code snippet:', codeSnippet);
+      const codeSnippet = extractCodeFromResponse(response);
+      console.log('Executing code snippet:', codeSnippet);
 
       let threeObject: THREE.Object3D;
       try {
@@ -138,7 +140,7 @@ app.post(
         console.warn('Snippet eval error:', err);
 
         // Attempt to recover once from error
-        const systemMessage = buildErrorCorrectionSystemPrompt(codeSnippet, err);
+        const systemMessage = buildErrorCorrectionSystemPrompt(dimsText, codeSnippet, err);
         completionParams.model = "gpt-4o-mini";
         completionParams.messages = [{ role: 'user', content: systemMessage }];
         completionParams.max_completion_tokens = 16000;
@@ -158,29 +160,29 @@ app.post(
         }
       }
 
-            const exporter = new STLExporter();
-            const stlString = exporter.parse(threeObject, {});
+      const exporter = new STLExporter();
+      const stlString = exporter.parse(threeObject, {});
 
       const timestamp = Date.now();
       const filename = `model-${timestamp}.stl`;
       const outputPath = path.join(outputDirectory, filename);
       fs.writeFileSync(outputPath, stlString, 'utf8');
 
-            res.json({
-                message: 'Three.js code generated & STL exported!',
-                code_snippet: codeSnippet,
-                file_saved: filename,
-                prompt_used: prompt,
-            });
-            console.log('Three.js code generated & STL exported! file saved:', filename);
-        } catch (err: any) {
-            next(err);
-        }
+      res.json({
+        message: 'Three.js code generated & STL exported!',
+        code_snippet: codeSnippet,
+        file_saved: filename,
+        prompt_used: prompt,
+      });
+      console.log('Three.js code generated & STL exported! file saved:', filename);
+    } catch (err: any) {
+      next(err);
     }
+  }
 );
 
 const getFixPrompt = (prompt: string, code: string, dimsText: string) => {
-    return `
+  return `
 
     You are an expert 3D modeling assistant that creates sophisticated and realistic Three.js models.
     Leverage, your context, training data, embeddings to generate relevant examples.
@@ -216,85 +218,85 @@ const getFixPrompt = (prompt: string, code: string, dimsText: string) => {
 }
 
 app.post(
-    '/fix-model',
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const prompt = req.body?.prompt;
-            const code = req.body?.code;
-            const img = req.body?.img;
-            if (!prompt) {
-                res.status(400).json({ error: "Missing 'prompt' in request body." });
-                return;
+  '/fix-model',
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const prompt = req.body?.prompt;
+      const code = req.body?.code;
+      const img = req.body?.img;
+      if (!prompt) {
+        res.status(400).json({ error: "Missing 'prompt' in request body." });
+        return;
+      }
+      if (!code) {
+        res.status(400).json({ error: "Missing 'code' in request body." });
+        return;
+      }
+      if (!img) {
+        res.status(400).json({ error: "Missing 'img' in request body." });
+        return;
+      }
+
+
+      const dims = extractDimensionsMm(prompt);
+      const dimsText = buildDimsText(dims);
+
+      const completion = await openai.chat.completions.create({
+        model: 'o1-preview',
+        messages: [{
+          role: 'user', content: [
+            {
+              type: 'text',
+              text: getFixPrompt(prompt, code, dimsText)
+
+            },
+            {
+              type: 'image_url',
+              image_url: img
             }
-            if (!code) {
-                res.status(400).json({ error: "Missing 'code' in request body." });
-                return;
-            }
-            if (!img) {
-                res.status(400).json({ error: "Missing 'img' in request body." });
-                return;
-            }
+          ]
+        }],
+        max_completion_tokens: 32000,
+      });
 
+      const response = completion.choices[0]?.message?.content?.trim() || '';
+      if (!response) {
+        res.status(500).json({ error: 'GPT returned empty response.' });
+        return;
+      }
 
-            const dims = extractDimensionsMm(prompt);
-            const dimsText = buildDimsText(dims);
+      const codeSnippet = extractCodeFromResponse(response);
+      console.log('Executing code snippet:', codeSnippet);
 
-            const completion = await openai.chat.completions.create({
-                model: 'o1-preview',
-                messages: [{
-                    role: 'user', content: [
-                        {
-                            type: 'text',
-                            text: getFixPrompt(prompt, code, dimsText)
+      let threeObject: THREE.Object3D;
+      try {
+        threeObject = runThreeJsCode(codeSnippet);
+      } catch (err) {
+        console.error('Snippet eval error:', err);
+        res.status(500).json({ error: 'Failed to eval snippet', code: codeSnippet });
+        return;
+      }
 
-                        },
-                        {
-                            type: 'image_url',
-                            image_url: img
-                        }
-                    ]
-                }],
-                max_completion_tokens: 32000,
-            });
+      const exporter = new STLExporter();
+      const stlString = exporter.parse(threeObject, {});
 
-            const response = completion.choices[0]?.message?.content?.trim() || '';
-            if (!response) {
-                res.status(500).json({ error: 'GPT returned empty response.' });
-                return;
-            }
+      const timestamp = Date.now();
+      const filename = `model-${timestamp}.stl`;
+      const outputPath = path.join(outputDirectory, filename);
+      console.log('stlString:', stlString);
+      fs.writeFileSync(outputPath, stlString, 'utf8');
 
-            const codeSnippet = extractCodeFromResponse(response);
-            console.log('Executing code snippet:', codeSnippet);
-
-            let threeObject: THREE.Object3D;
-            try {
-                threeObject = runThreeJsCode(codeSnippet);
-            } catch (err) {
-                console.error('Snippet eval error:', err);
-                res.status(500).json({ error: 'Failed to eval snippet', code: codeSnippet });
-                return;
-            }
-
-            const exporter = new STLExporter();
-            const stlString = exporter.parse(threeObject, {});
-
-            const timestamp = Date.now();
-            const filename = `model-${timestamp}.stl`;
-            const outputPath = path.join(outputDirectory, filename);
-            console.log('stlString:', stlString);
-            fs.writeFileSync(outputPath, stlString, 'utf8');
-
-            res.json({
-                message: 'Three.js code generated & STL exported!',
-                code_snippet: codeSnippet,
-                file_saved: filename,
-                prompt_used: prompt,
-            });
-            console.log('Three.js code generated & STL exported! file saved:', filename);
-        } catch (err: any) {
-            next(err);
-        }
+      res.json({
+        message: 'Three.js code generated & STL exported!',
+        code_snippet: codeSnippet,
+        file_saved: filename,
+        prompt_used: prompt,
+      });
+      console.log('Three.js code generated & STL exported! file saved:', filename);
+    } catch (err: any) {
+      next(err);
     }
+  }
 );
 
 app.post(
@@ -322,6 +324,6 @@ app.post(
 
 // Error-handling middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    console.error('Express error handler:', err);
-    res.status(500).json({ error: err.message });
+  console.error('Express error handler:', err);
+  res.status(500).json({ error: err.message });
 });

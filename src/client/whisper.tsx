@@ -3,17 +3,17 @@ import { useReactMediaRecorder } from "react-media-recorder";
 import { Status } from "./Status";
 
 interface WhisperProps {
-  setPrompt: (prompt: { isCorrection: boolean, prompt: string }) => void;
+  setPrompt: (prompt: string) => void;
+  setCorrecting: (correcting: boolean) => void;
   status: Status;
   setStatus: (status: Status) => void;
 }
 
-export const Whisper = ({ setPrompt, status, setStatus }: WhisperProps) => {
+export const Whisper = ({ setPrompt, status, setStatus, setCorrecting }: WhisperProps) => {
   const { status: recordingStatus, startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({
     audio: true
   });
 
-  const [correcting, setCorrecting] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [elapsedTime, setElapsedTime] = useState(0);
 
@@ -63,7 +63,7 @@ export const Whisper = ({ setPrompt, status, setStatus }: WhisperProps) => {
 
       console.log("Got transcript:", json["transcript"]);
       setTranscript(json["transcript"]);
-      setPrompt({ isCorrection: correcting, prompt: json["transcript"] });
+      setPrompt(json["transcript"]);
       setStatus(Status.IDLE);
     };
 
