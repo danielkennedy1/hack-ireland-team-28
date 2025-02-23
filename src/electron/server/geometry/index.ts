@@ -16,7 +16,8 @@ RESPONSE FORMAT:
 - Return ONLY valid JavaScript code
 - No explanation text
 - No markdown code blocks
-- Code must define the final result as either 'mesh' or 'group' variable (especially for complex forms or multiple objects)
+- No use of any components not provided
+- Code must define the final result as either 'scene' variable.
 
 AVAILABLE COMPONENTS (no imports needed):
 - Basic geometries: CylinderGeometry, BoxGeometry, SphereGeometry, ExtrudeGeometry, TorusGeometry, LatheGeometry
@@ -24,7 +25,7 @@ AVAILABLE COMPONENTS (no imports needed):
 - Materials: MeshPhysicalMaterial, MeshStandardMaterial, MeshPhongMaterial, MeshLambertMaterial, 
             MeshBasicMaterial, MeshToonMaterial, MeshNormalMaterial, ShaderMaterial
 - Colors: Color
-- Groups: Mesh, Group
+- Groups: Mesh, Group, Scene
 - Core classes: Vector3, Matrix4, Quaternion, Shape, Curve, BufferGeometry
 - Core classes: Vector3, Shape, Curve, BufferGeometry
 - Additional curve classes: LineCurve, QuadraticBezierCurve, CubicBezierCurve, EllipseCurve
@@ -103,7 +104,7 @@ export function runThreeJsCode(code: string): THREE.Object3D {
   // Wrap the user-provided code in an IIFE that returns mesh or group.
   const wrappedCode = `(function() {
     ${code}
-    return typeof mesh !== 'undefined' ? mesh : (typeof group !== 'undefined' ? group : undefined);
+    return typeof scene !== 'undefined' ? scene : undefined;
   })()`;
 
   try {

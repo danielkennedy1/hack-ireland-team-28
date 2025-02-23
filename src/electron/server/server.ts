@@ -36,6 +36,8 @@ import * as THREE from 'three';
 import { transcriptionFromBlob } from './transcribe';
 import { isUploadable, Uploadable } from 'openai/uploads';
 import { STLExporter } from 'three/addons/exporters/STLExporter';
+import { ChatCompletionCreateParams } from 'openai/resources';
+import { buildCorrectionSystemPrompt } from './correction';
 
 const app = express();
 const upload = multer();
@@ -92,13 +94,15 @@ app.post(
       const systemMessage = `${buildThreeJsSystemMessage(dimsText)}\n\n${retrievalContext}`;
 
       // Use the user prompt as input
-      const userMessage = prompt;
+      const userMessage = prompt + " Make it consistent and include details.";
 
-      const completion = await openai.chat.completions.create({
-        model: 'o1-preview',
+      let completionParams: ChatCompletionCreateParams = {
+        model: 'gpt-4o-mini',
         messages: [{ role: 'user', content: systemMessage + '\n\n' + userMessage }],
-        max_completion_tokens: 32000,
-      });
+        max_completion_tokens: 16000,
+      }
+
+      const completion = await openai.chat.completions.create(completionParams);
 
       const response = completion.choices[0]?.message?.content?.trim() || '';
       if (!response) {
@@ -113,9 +117,26 @@ app.post(
       try {
         threeObject = runThreeJsCode(codeSnippet);
       } catch (err) {
-        console.error('Snippet eval error:', err);
-        res.status(500).json({ error: 'Failed to eval snippet', code: codeSnippet });
-        return;
+        console.warn('Snippet eval error:', err);
+
+        // Attempt to recover once from error
+        const systemMessage = buildCorrectionSystemPrompt(codeSnippet, err);
+        completionParams.model = "gpt-4o-mini";
+        completionParams.messages = [{ role: 'user', content: systemMessage }];
+        completionParams.max_completion_tokens = 16000;
+        const correction = await openai.chat.completions.create(completionParams);
+
+        const response = correction.choices[0]?.message?.content?.trim() || '';
+        const newCodeSnippet = extractCodeFromResponse(response);
+        console.log("Correction:", newCodeSnippet);
+
+        try {
+          threeObject = runThreeJsCode(newCodeSnippet);
+        } catch (err) {
+          console.error('Snippet eval error:', err);
+          res.status(500).json({ error: 'Failed to eval snippet', code: codeSnippet });
+          return;
+        }
       }
 
       const exporter = new STLExporter();
@@ -124,7 +145,6 @@ app.post(
       const timestamp = Date.now();
       const filename = `model-${timestamp}.stl`;
       const outputPath = path.join(outputDirectory, filename);
-      console.log('stlString:', stlString);
       fs.writeFileSync(outputPath, stlString, 'utf8');
 
       res.json({
@@ -152,8 +172,11 @@ app.post(
       console.debug('Received audio file:', audioFile);
       fs.writeFileSync(path.join(outputDirectory, '/speech.wav'), audioFile.buffer);
       const audio = fs.createReadStream(path.join(outputDirectory, '/speech.wav'));
-      const transcript = await transcriptionFromBlob(audio as Uploadable, 'en');
-      res.json({ message: 'Success', transcript: transcript });
+      const transcript = await transcriptionFromBlob(audio as Uploadable, 'en').catch(reason => next(reason));
+
+      if (transcript) {
+        res.json({ message: 'Success', transcript: transcript });
+      }
     } catch (err: any) {
       next(err);
     }
