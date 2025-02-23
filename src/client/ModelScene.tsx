@@ -1,5 +1,5 @@
 import React, { useState, Suspense } from "react";
-import { OrbitControls, Box } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import { BufferGeometry } from "three";
 import { useThree } from "@react-three/fiber";
 
@@ -44,7 +44,7 @@ const DefaultBox: React.FC<ModelSceneProps> = ({ position, scale, color, hoverCo
     );
 };
 
-const ModelScene: React.FC<ModelSceneProps> = (props) => {
+export const ModelScene: React.FC<ModelSceneProps> = (props) => {
     return (
         <>
             <OrbitControls />
@@ -54,5 +54,3 @@ const ModelScene: React.FC<ModelSceneProps> = (props) => {
         </>
     );
 };
-
-export default ModelScene;

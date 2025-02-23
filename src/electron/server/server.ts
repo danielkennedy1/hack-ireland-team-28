@@ -8,7 +8,7 @@ import OpenAI from "openai";
 import { CONFIG } from "./config";
 import cors from "cors";
 import path from "path";
-import { Readable } from "stream";
+import { app as electron_app } from "electron";
 
 import { buildRetrievalContext } from "./retrieval";
 // Import geometry functions
@@ -48,7 +48,7 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 
-let outputDirectory = 'C:/Users/danie/Development/hack-ireland-team-28/.webpack/renderer/assets';
+let outputDirectory = path.join(electron_app.getAppPath(), "/assets")
 
 export const setOutputDirectory = (dir: string) => {
   outputDirectory = dir;
@@ -104,7 +104,7 @@ app.post("/generate-model", async (req: Request, res: Response, next: NextFuncti
         { role: "user", content: userMessage },
       ],
       max_tokens: 10000,
-      temperature: 0.8,
+      temperature: 1.2,
     });
 
     const response = completion.choices[0]?.message?.content?.trim() || "";
